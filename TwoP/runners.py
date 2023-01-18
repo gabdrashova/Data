@@ -728,6 +728,46 @@ def process_metadata_directory(
 
 
 def read_csv_produce_directories(dataEntry, s2pDir, zstackDir, metadataDir):
+    """
+    Gets all the base directories (suite2p, z Stack, metadata, save directory)  
+    and composes these directories for each experiment.
+    
+
+    Parameters
+    ----------
+    dataEntry : pandas DataFrame [amount of experiments, 6]
+        The data from the preprocess.csv file in a pandas dataframe. This should have been
+        created in the main_preprocess file; assumes these columns are included:
+            - Name
+            - Date
+            - Zstack
+            - IgnorePlanes
+            - SaveDir
+            - Process
+    s2pDir : string
+        Filepath to the Suite2P processed folder. For more details on what this should contain
+        please look at the define_directories function definition in folder_defs.
+    zstackDir : string
+        Filepath to the Z stack.For more details on what this should contain
+        please look at the define_directories function definition in folder_defs.
+    metadataDir : string
+        Filepath to the metadata directory.For more details on what this should contain
+        please look at the define_directories function definition in folder_defs.
+
+    Returns
+    -------
+    s2pDirectory : string [s2pr\Animal\Date\suite2p]
+        The concatenated Suite2P directory.
+    zstackPath : string [zstackDir\Animal\Date\Z stack value from dataEntry\Z_stack_file.tif]
+        The concatenated Z stack directory.
+    metadataDirectory : string [metadataDir\Animal\Date]
+        The concatenated metadata directory.
+    saveDirectory : string [SaveDir from dataEntry or ]
+        The save directory where all the processed files are saved. If not specified,
+        will be saved in the suite2p folder.
+
+    """
+    # The data from each  dataEntry column is placed into variables.
     name = dataEntry.Name
     date = dataEntry.Date
     zstack = dataEntry.Zstack
@@ -735,34 +775,45 @@ def read_csv_produce_directories(dataEntry, s2pDir, zstackDir, metadataDir):
     saveDirectory = dataEntry.SaveDir
     process = dataEntry.Process
 
-    # compose directories
+     # Joins suite2p directory with the name and the date.
     s2pDirectory = os.path.join(s2pDir, name, date, "suite2p")
-
+    
+    # If this path doesn't exist, returns a ValueError.
     if not os.path.exists(s2pDirectory):
         raise ValueError(
             "suite 2p directory " + s2pDirectory + "was not found."
         )
+    # Checks if zStack directory number has the right shape (is not a float or a NaN).
     if (type(zstack) is float) and (np.isnan(zstack)):
         zstackPath = None
         zstackDirectory = None
     else:
+        # Creates the Z Stack directory.
         zstackDirectory = os.path.join(zstackDir, name, date, str(zstack))
         try:
+            # Returns a path to the tif file with the Z stack within the specified zstackDirectory.
             zstackPath = glob.glob(os.path.join(zstackDirectory, "*.tif"))[0]
         except:
+            # If no Z stack directory was specified in the preprocess file, returns a ValueError.
+            # Note that the Z stack is essential for performing the Z correction!
             raise ValueError(
                 "Z stack Directory not found. Please check the number in the processing csv"
             )
-
+    # Joins suite2p directory with the name and the date.
     metadataDirectory = os.path.join(metadataDir, name, date)
-
+    
+    # If metadata directory does not exist, returns this ValueError.
     if not os.path.exists(metadataDirectory):
         raise ValueError(
             "metadata directory " + metadataDirectory + "was not found."
         )
 
     if not type(saveDirectory) is str:
+        # If the saveDirectory is not a string, saves files created here
+        # in a folder called PreProcessedFiles. This exists in the s2pDirectory.
+        # This also means this folder is not created if the saveDirectory is specified.
         saveDirectory = os.path.join(s2pDirectory, "PreprocessedFiles")
+    # Creates the folder Preprocessedfiles if it doesn't exist yet
     if not os.path.isdir(saveDirectory):
         os.makedirs(saveDirectory)
     return s2pDirectory, zstackPath, metadataDirectory, saveDirectory
