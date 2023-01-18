@@ -3,6 +3,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# setting files to ignore
+Data/TwoP/folder_defs.py
+
 # C extensions
 *.so
 
