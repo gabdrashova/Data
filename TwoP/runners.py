@@ -732,7 +732,7 @@ def read_csv_produce_directories(dataEntry, s2pDir, zstackDir, metadataDir):
     date = dataEntry.Date
     zstack = dataEntry.Zstack
     ignorePlanes = np.fromstring(str(dataEntry.IgnorePlanes), sep=",")
-    saveDir = dataEntry.SaveDir
+    saveDirectory = dataEntry.SaveDir
     process = dataEntry.Process
 
     # compose directories
@@ -761,7 +761,7 @@ def read_csv_produce_directories(dataEntry, s2pDir, zstackDir, metadataDir):
             "metadata directory " + metadataDirectory + "was not found."
         )
 
-    if np.isnan(saveDir):
+    if not type(saveDirectory) is str:
         saveDirectory = os.path.join(s2pDirectory, "PreprocessedFiles")
     if not os.path.isdir(saveDirectory):
         os.makedirs(saveDirectory)
