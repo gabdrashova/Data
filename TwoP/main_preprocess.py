@@ -55,9 +55,11 @@ for i in range(len(database)):
             ) = read_csv_produce_directories(
                 database.loc[i], s2pDir, zstackDir, metadataDir
             )
+            # Converts and places the planes to be ignored in an array that is at least 1-dimensional.
             ignorePlanes = np.atleast_1d(
                 np.array(database.loc[0]["IgnorePlanes"]).astype(int)
             )
+            # Returns the ops dictionary.
             ops = get_ops_file(s2pDirectory)
             print("getting piezo data")
             planePiezo = get_piezo_data(ops)
