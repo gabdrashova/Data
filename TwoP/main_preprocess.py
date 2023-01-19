@@ -24,7 +24,7 @@ csvDir, s2pDir, zstackDir, metadataDir = define_directories()
 pops = create_processing_ops()
 
 # %% read database
-# Read database from the preprocess file.
+
 # In the file the values should be Name, Date, Zstack dir number, planes to ignore
 # and save directory (if none default is wanted) and process (True,False)
 database = pd.read_csv(
@@ -42,7 +42,7 @@ database = pd.read_csv(
 
 # %% run over data base
 for i in range(len(database)):
-    # This if loop goes through the pandas dataframe called database created above and 
+    # Goes through the pandas dataframe called database created above and 
     # if True in the column "Process", the processing continues
     if database.loc[i]["Process"]:
         try:
