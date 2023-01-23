@@ -576,24 +576,64 @@ def get_piezo_trace_for_plane(
     winSize=20,
     batchFactor=100,
 ):
+    """
+    Calculates the average movement of the piezo across z-axis in one frame for all planes.
+    Location in depth (in microns) is for each milisecond within one plane.
 
+    Parameters
+    ----------
+    piezo : np.array[nidaq timepoints]
+        Piezo trace.
+    frameTimes : np.array [frames]
+        Frame start Times (s).
+    piezoTime : np.array[nidaq timepoints]
+        The time in seconds of each timepoint in the piezo trace.
+    imagingPlanes : int
+        Number of planes imaged.
+    selectedPlanes : np.array[selectedPlanes], optional
+        Certain selected planes if wanting to only get the data for specific planes. The default is None.
+    vRatio : float, optional
+        the range of voltage over the distance travelled in Z. The default is 5 / 400.
+    winSize : int, optional
+        the window size over which to smooth the trace. The default is 20.
+    batchFactor : int, optional
+        The number of frames to sample over. The default is sampling over every 100th frame.
+
+    Returns
+    -------
+    planePiezo : np.array [miliseconds in one frame, nplanes]
+        Movement of piezo across z-axis for all planes. 
+        Location in depth (in microns) is for each milisecond within one plane.
+
+    """
+    # Unless certain planes are chosen, all the imaging planes will be taken into account.
     if selectedPlanes is None:
+        # Creates a range object of the range [no. of imaging planes].
         selectedPlanes = range(imagingPlanes)
     else:
+        # Creates an array of at least 1D with the selected plane values.
         selectedPlanes = np.atleast_1d(selectedPlanes)
+    # Returns a Hanning window of size winSize.
     w = np.hanning(winSize)
+    # Divides the values in the window by the sum of the values.
     w /= np.sum(w)
+    # Smoothes the piezo trace with a hanning window from above.
     piezo = np.convolve(piezo, w, "same")
-
+    
+    # Subtracts the minimum value in the piezo trace from the piezo trace.
     piezo -= np.min(piezo)
+    # Divides the piezo trace by the voltage ratio.
     piezo /= vRatio
+    # Determines the duration of each trace in miliseconds.
     traceDuration = int(np.median(np.diff(frameTimes)) * 1000)  # convert to ms
+    # Creates an array where the location in depth is for each milisecond within one plane.
     planePiezo = np.zeros((traceDuration, len(selectedPlanes)))
-
+    
+    # Runs over the imaging planes and calculates the average depth per frame every 100th frame.
     for i in range(len(selectedPlanes)):
         plane = selectedPlanes[i]
 
-        # Take an average of piezo trace for plane, by sampling every 100th frame
+        # Takes an average of piezo trace for plane, by sampling every 100th frame.
         piezoStarts = frameTimes[imagingPlanes + plane :: imagingPlanes]
         piezoEnds = frameTimes[imagingPlanes + plane + 1 :: imagingPlanes]
 
@@ -622,12 +662,40 @@ def get_file_in_directory(directory, simpleName):
 
 
 def get_piezo_data(ops):
+    """
+    Extracts all the data needed to run the above function, get_piezo_trace.
+    This includes:
+            - the current working directory
+            - the number of planes
+            - the nidaq channels, especially the frameclock, the niday times and the piezo data
+
+    Parameters
+    ----------
+    ops : dict
+        dictionary from the suite2p folder including all the input settings such as
+        the number of planes.
+
+    Returns
+    -------
+    planePiezo : np.array [miliseconds in one frame, nplanes]
+        Movement of piezo across z-axis for all planes. 
+        Location in depth (in microns) is for each milisecond within one plane.
+        
+
+    """
+    # Loads the current experiment for which to get the piezo data.
     piezoDir = ops["data_path"][0]
+    # Loads the number of planes from the ops file.
     nplanes = ops["nplanes"]
+    # Returns all the nidaq channels, the number of channels and the nidaq time.
     nidaq, channels, nt = get_nidaq_channels(piezoDir, plot=False)
+    # Loads the frameclock from the nidaq.
     frameclock = nidaq[:, channels == "frameclock"]
+    # Returns the time at which each frame was acquired.
     frames = assign_frame_time(frameclock, plot=False)
+    # Loads the piezo.
     piezo = nidaq[:, channels == "piezo"].copy()[:, 0]
+    # Returns the movement of the piezo across the z-axis for all planes.
     planePiezo = get_piezo_trace_for_plane(
         piezo, frames, nt, imagingPlanes=nplanes
     )
