@@ -62,6 +62,7 @@ for i in range(len(database)):
             # Returns the ops dictionary.
             ops = get_ops_file(s2pDirectory)
             print("getting piezo data")
+            # Returns the movement of the piezo within one frame across the z-axis for all planes.
             planePiezo = get_piezo_data(ops)
             print("processing suite2p data")
             fc = process_s2p_directory(
