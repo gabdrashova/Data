@@ -616,15 +616,16 @@ def get_piezo_trace_for_plane(
     # Returns a Hanning window of size winSize.
     w = np.hanning(winSize)
     # Divides the values in the window by the sum of the values.
+    # This averages the window so that the area under the curve is 1.
     w /= np.sum(w)
-    # Smoothes the piezo trace with a hanning window from above.
+    # Smoothes the piezo trace with the hanning window from above to remove irregularities in the trace.
     piezo = np.convolve(piezo, w, "same")
     
-    # Subtracts the minimum value in the piezo trace from the piezo trace.
+    # Subtracts the minimum value in the piezo trace from the piezo trace to obtain positive values only.
     piezo -= np.min(piezo)
-    # Divides the piezo trace by the voltage ratio.
+    # Divides the piezo trace by the voltage ratio to convert the voltage values into distance in microns.
     piezo /= vRatio
-    # Determines the duration of each trace in miliseconds.
+    # Determines the duration of each frame in miliseconds.
     traceDuration = int(np.median(np.diff(frameTimes)) * 1000)  # convert to ms
     # Creates an array where the location in depth is for each milisecond within one plane.
     planePiezo = np.zeros((traceDuration, len(selectedPlanes)))
@@ -633,18 +634,27 @@ def get_piezo_trace_for_plane(
     for i in range(len(selectedPlanes)):
         plane = selectedPlanes[i]
 
-        # Takes an average of piezo trace for plane, by sampling every 100th frame.
+# Below section takes an average of piezo trace for each plane, by sampling every 100th frame.
+
+        # Determines the time at which the piezo starts and ends for each plane but ignoring the first frame
+        # because the location of the first frame is when the piezo starts moving so it is inaccurate.
         piezoStarts = frameTimes[imagingPlanes + plane :: imagingPlanes]
         piezoEnds = frameTimes[imagingPlanes + plane + 1 :: imagingPlanes]
-
+        # Determines the range over which to sample over the piezo trace given the batchFactor specified.
         piezoBatchRange = range(0, len(piezoStarts), batchFactor)
+        # Creates the array for the piezo location for each milisecond in each batch.
         avgTrace = np.zeros((traceDuration, len(piezoBatchRange)))
         for avgInd, pi in enumerate(piezoBatchRange):
+            # Determines the section of the piezo trace to take into account given the piezo start and end times
+            # specified above.
             inds = np.where(
                 (piezoTime >= piezoStarts[pi]) & (piezoTime < piezoEnds[pi])
             )
+            # Gets the array for the piezo location for each milisecond in each batch.
             avgTrace[:, avgInd] = piezo[inds][: len(avgTrace[:, avgInd])]
+        # Calculates the average piezo location for each milisecond in the frame.
         avgTrace = np.nanmean(avgTrace, 1)
+        # Combines the average piezo location from each plane.
         planePiezo[:, i] = avgTrace
     return planePiezo
 
