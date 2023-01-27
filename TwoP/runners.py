@@ -122,39 +122,48 @@ def _process_s2p_singlePlane(
     if pops["plot"]:
         for i in range(dF.shape[-1]):
             # Print full
-            f, ax = plt.subplots(5, 1)
-            ax[0].plot(F[:, i], "b")
-            ax[0].plot(N[:, i], "r")
-            ax[0].legend(
+            plotArrangement = [
+                ["profile", "f"],
+                ["profile", "corr"],
+                ["profile", "zcorr"],
+                ["profile", "trace"],
+            ]
+            f, ax = plt.subplot_mosaic(plotArrangement)
+            ax["f"].plot(F[:, i], "b")
+            ax["f"].plot(N[:, i], "r")
+            ax["f"].legend(
                 ["Fluorescence", "Neuropil"],
                 bbox_to_anchor=(1.01, 1),
                 loc="upper left",
             )
-            ax[1].plot(Fc[:, i], "k")
-            ax[1].plot(F0[:, i], "b", linewidth=4, zorder=10)
-            ax[1].legend(
+            ax["corr"].plot(Fc[:, i], "k")
+            ax["corr"].plot(F0[:, i], "b", linewidth=4, zorder=10)
+            ax["corr"].legend(
                 ["Corrected F", "F0"],
                 bbox_to_anchor=(1.01, 1),
                 loc="upper left",
             )
-            ax[1].plot(Fc[:, i], "k")
-            ax[2].plot(Fcz[:, i], "k")
-            ax[2].plot(dF[:, i], "b--", linewidth=3)
-            ax[2].legend(
+
+            ax["zcorr"].plot(Fcz[:, i], "k")
+            ax["zcorr"].plot(dF[:, i], "b--", linewidth=3)
+            ax["zcorr"].legend(
                 ["dF/F", "dF/F z-zcorrected"],
                 bbox_to_anchor=(1.01, 1),
                 loc="upper left",
             )
+            ax["zcorr"].set_xlabel("time (frames)")
             if not zTrace is None:
-                ax[3].plot(zTrace)
-                ax[3].legend(
+                ax["trace"].plot(zTrace)
+                ax["trace"].legend(
                     ["Z trace"], bbox_to_anchor=(1.01, 1), loc="upper left"
                 )
             if not zprofiles is None:
-                ax[4].plot(zprofiles[:, i], range(zprofiles.shape[0]))
-                ax[4].legend(
+                ax["profile"].plot(zprofiles[:, i], range(zprofiles.shape[0]))
+                ax["profile"].legend(
                     ["Z profile"], bbox_to_anchor=(1.01, 1), loc="upper left"
                 )
+                ax["profile"].set_xlabel("fluorescence")
+                ax["profile"].set_xlabel("depth")
 
             manager = plt.get_current_fig_manager()
             manager.full_screen_toggle()
@@ -177,39 +186,42 @@ def _process_s2p_singlePlane(
                 pickle.dump(f, file)
 
             # Print Part
-            f, ax = plt.subplots(5, 1)
-            ax[0].plot(F[1:500, i], "b")
-            ax[0].plot(N[1:500, i], "r")
-            ax[0].legend(
+            f, ax = plt.subplot_mosaic(plotArrangement)
+            ax["f"].plot(F[1:500, i], "b")
+            ax["f"].plot(N[1:500, i], "r")
+            ax["f"].legend(
                 ["Fluorescence", "Neuropil"],
                 bbox_to_anchor=(1.01, 1),
                 loc="upper left",
             )
-            ax[1].plot(Fc[1:500, i], "k")
-            ax[1].plot(F0[1:500, i], "b", linewidth=4)
-            ax[1].legend(
+            ax["corr"].plot(Fc[1:500, i], "k")
+            ax["corr"].plot(F0[1:500, i], "b", linewidth=4)
+            ax["corr"].legend(
                 ["Corrected F", "F0"],
                 bbox_to_anchor=(1.01, 1),
                 loc="upper left",
             )
-            ax[1].plot(Fc[1:500, i], "k")
-            ax[2].plot(Fcz[1:500, i], "k")
-            ax[2].plot(dF[1:500, i], "b--", linewidth=3)
-            ax[2].legend(
+
+            ax["zcorr"].plot(Fcz[1:500, i], "k")
+            ax["zcorr"].plot(dF[1:500, i], "b--", linewidth=3)
+            ax["zcorr"].legend(
                 ["dF/F", "dF/F z-zcorrected"],
                 bbox_to_anchor=(1.01, 1),
                 loc="upper left",
             )
+            ax["zcorr"].set_xlabel("time (frames)")
             if not zTrace is None:
-                ax[3].plot(zTrace[1:500])
-                ax[3].legend(
+                ax["trace"].plot(zTrace[1:500])
+                ax["trace"].legend(
                     ["Z trace"], bbox_to_anchor=(1.01, 1), loc="upper left"
                 )
             if not zprofiles is None:
-                ax[4].plot(zprofiles[:, i], range(zprofiles.shape[0]))
-                ax[4].legend(
+                ax["profile"].plot(zprofiles[:, i], range(zprofiles.shape[0]))
+                ax["profile"].legend(
                     ["Z profile"], bbox_to_anchor=(1.01, 1), loc="upper left"
                 )
+                ax["profile"].set_xlabel("fluorescence")
+                ax["profile"].set_xlabel("depth")
 
             manager = plt.get_current_fig_manager()
             manager.full_screen_toggle()
