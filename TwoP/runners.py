@@ -201,7 +201,7 @@ def _process_s2p_singlePlane(
                 loc="upper left",
             )
             if not zTrace is None:
-                ax[3].plot(zTrace)
+                ax[3].plot(zTrace[1:500])
                 ax[3].legend(
                     ["Z trace"], bbox_to_anchor=(1.01, 1), loc="upper left"
                 )
@@ -729,9 +729,9 @@ def process_metadata_directory(
 
 def read_csv_produce_directories(dataEntry, s2pDir, zstackDir, metadataDir):
     """
-    Gets all the base directories (suite2p, z Stack, metadata, save directory)  
+    Gets all the base directories (suite2p, z Stack, metadata, save directory)
     and composes these directories for each experiment.
-    
+
 
     Parameters
     ----------
@@ -775,9 +775,9 @@ def read_csv_produce_directories(dataEntry, s2pDir, zstackDir, metadataDir):
     saveDirectory = dataEntry.SaveDir
     process = dataEntry.Process
 
-     # Joins suite2p directory with the name and the date.
+    # Joins suite2p directory with the name and the date.
     s2pDirectory = os.path.join(s2pDir, name, date, "suite2p")
-    
+
     # If this path doesn't exist, returns a ValueError.
     if not os.path.exists(s2pDirectory):
         raise ValueError(
@@ -801,7 +801,7 @@ def read_csv_produce_directories(dataEntry, s2pDir, zstackDir, metadataDir):
             )
     # Joins suite2p directory with the name and the date.
     metadataDirectory = os.path.join(metadataDir, name, date)
-    
+
     # If metadata directory does not exist, returns this ValueError.
     if not os.path.exists(metadataDirectory):
         raise ValueError(
