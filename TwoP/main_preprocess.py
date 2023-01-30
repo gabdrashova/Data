@@ -43,7 +43,7 @@ database = pd.read_csv(
 # %% run over data base
 for i in range(len(database)):
     # Goes through the pandas dataframe called database created above and 
-    # if True in the column "Process", the processing continues
+    # if True in the column "Process", the processing continues.
     if database.loc[i]["Process"]:
         try:
             print("reading directories")
