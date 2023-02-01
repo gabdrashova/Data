@@ -347,7 +347,7 @@ def process_s2p_directory(
     else:
         jobnum = 1
     # Processes the 2P data for the planes specified in the plane range.
-    # Refer to the function for a more thorough description. 
+    # This gives a list of dictinaries with all the planes. Refer to the function for a more thorough description. 
     results = Parallel(n_jobs=jobnum, verbose=5)(
         delayed(_process_s2p_singlePlane)(
             pops, planeDirs, zstackPath, saveDirectory, piezoTraces[:, p], p
@@ -366,30 +366,34 @@ def process_s2p_directory(
     signalLocs = []
     zTraces = []
     zProfiles = []
-    # Appends lists with the results.
+    # Appends lists with the results for all the planes.
     for i in range(len(results)):
         signalList.append(results[i]["dff_zcorr"])
         signalLocs.append(results[i]["locs"])
         zTraces.append(results[i]["zTrace"])
         zProfiles.append(results[i]["zProfiles"])
-        # TODO: continue commenting
+        # Places the signal into an array. 
         res = signalList[i]
+        # Specifies which plane each ROI belongs to.
         planes = np.append(planes, np.ones(res.shape[1]) * planeRange[i])
-    # TODO: combine results
-    # check that all signals are the same length
-    minLength = 10**10
+    # Specifies number to compare the length of the signals to.
+    minLength = 10**10 
     for i in range(len(signalList)):
+        # Checks the minumum length of the signals for each plane.
         minLength = np.min((signalList[i].shape[0], minLength))
     for i in range(len(signalList)):
+        # Updates the signalList to only include frames until the minimum length determined above.
         signalList[i] = signalList[i][:minLength, :]
         if not zTraces[i] is None:
+            # Updates the zTraces to only include frames until the minimum length determined above.
             zTraces[i] = zTraces[i][:minLength]
+    # Combines results from each plane into a single array for signals, locations, zProfile and zTrace.
     signals = np.hstack(signalList)
     locs = np.vstack(signalLocs)
     zProfile = np.hstack(zProfiles)
     zTrace = np.vstack(zTraces)
 
-    # save stuff
+    # Saves the results as individual npy files.
     np.save(os.path.join(saveDirectory, "calcium.dff.npy"), signals)
     np.save(os.path.join(saveDirectory, "calcium.planes.npy"), planes)
     np.save(os.path.join(saveDirectory, "rois.xyz.npy"), locs)
