@@ -62,33 +62,43 @@ def _process_s2p_singlePlane(
         - Cell locations in the X,Y and Z: np.array[no. of ROIs, 3]
 
     """
+    # Sets the current plane to processed.
     currDir = planeDirs[plane]
 
-    F = np.load(os.path.join(currDir, "F.npy"), allow_pickle=True).T
-    N = np.load(os.path.join(currDir, "Fneu.npy")).T
-    isCell = np.load(os.path.join(currDir, "iscell.npy")).T
-    stat = np.load(os.path.join(currDir, "stat.npy"), allow_pickle=True)
-    ops = np.load(os.path.join(currDir, "ops.npy"), allow_pickle=True).item()
+    F = np.load(os.path.join(currDir, "F.npy"), allow_pickle=True).T # Array of fluorescence traces [ROIs x timepoints].
+    N = np.load(os.path.join(currDir, "Fneu.npy")).T # Array of neuropil traces [ROIs x timepoints].
+    isCell = np.load(os.path.join(currDir, "iscell.npy")).T # Array to determine if an ROI is a cell [ROIs].
+    stat = np.load(os.path.join(currDir, "stat.npy"), allow_pickle=True) # Array of objects with statistics computed for each cell [ROIs]
+    ops = np.load(os.path.join(currDir, "ops.npy"), allow_pickle=True).item() #  Dictionary of options and intermediate outputs.
+    #TODO: why an empty dict here?
     processing_metadata = {}
 
-    fs = ops["fs"]
-    F = F[:, isCell[0, :].astype(bool)]
-    N = N[:, isCell[0, :].astype(bool)]
-    stat = stat[isCell[0, :].astype(bool)]
+    fs = ops["fs"] # Gets the acquisition frame rate.
+    F = F[:, isCell[0, :].astype(bool)] # Updates F to only include the ROIs considered cells.
+    N = N[:, isCell[0, :].astype(bool)] # Updates N to only include the ROIs considered cells.
+    stat = stat[isCell[0, :].astype(bool)] # Updates stat to only include the ROIs considered cells.
 
-    cellLocs = np.zeros((len(stat), 3))
-    ySpan = ops["refImg"].shape[1]
+    cellLocs = np.zeros((len(stat), 3)) # Creates array to place the X, Y and Z positions of ROIs.
+    ySpan = ops["refImg"].shape[1] # Gets the resolution (in pixels) along the y dimension.
 
-    F = zero_signal(F)
-    N = zero_signal(N)
+    F = zero_signal(F) # Adds the absolute signal value to F, see function for a more in depth definition.
+    N = zero_signal(N) # Adds the absolute signal value to N, see function for a more in depth definition.
 
-    # Get cell locations
+    # For each ROI, the location is determined from the suite2p output stat (for X and Y) and from the piezo (for Z).
     for i, s in enumerate(stat):
+        # Determines the relative Y position in the FOV by getting the location in pixels of the center of the ROI 
+        # and divides this by the total resolution.
         relYpos = s["med"][1] / ySpan
+        # Due to the fast volume scanning technique used (with a piezo), the plane is imaged at a slant which spans the Y dimension.
+        # So the location of the cell in Z depends on its position in Y. 
+        # For each plane, the piezo array contains the location in Z as it scans through the plane. To determine the correct Z location,
+        # the relative Y position was computed in the previous line to compute the index in the piezo array which corresponds to the ROIs location.
         piezoInd = int(np.round((len(piezo) - 1) * relYpos))
+        # Determines the Z position of the ROI based on the index calculated in the previous line. 
         zPos = piezo[piezoInd]
+        # Appends the array with the XY positions of the center of the ROI taken from the stat array and the z position of each ROI.
         cellLocs[i, :] = np.append(s["med"], zPos)
-
+#TODO: continue from here
     # FCORR stuff
     Fc, regPars, F_binValues, N_binValues = correct_neuropil(F, N, fs)
     F0 = get_F0(
@@ -339,7 +349,7 @@ def process_s2p_directory(
         planeRange = np.delete(planeRange, ignorePlanes)
     # Determine the absolute time before processing.
     preTime = time.time()
-    # TODO: extract planes
+   
     # Specifies the amount of parallel jobs to decrease processing time. 
     # If in debug mode, there will be no parallel processing.
     if not debug:
@@ -383,6 +393,7 @@ def process_s2p_directory(
         minLength = np.min((signalList[i].shape[0], minLength))
     for i in range(len(signalList)):
         # Updates the signalList to only include frames until the minimum length determined above.
+        # This is done to discard any additional frames that were recorded for some planes but not all.
         signalList[i] = signalList[i][:minLength, :]
         if not zTraces[i] is None:
             # Updates the zTraces to only include frames until the minimum length determined above.
@@ -393,7 +404,7 @@ def process_s2p_directory(
     zProfile = np.hstack(zProfiles)
     zTrace = np.vstack(zTraces)
 
-    # Saves the results as individual npy files.
+    # Saves the results as individual    npy files.
     np.save(os.path.join(saveDirectory, "calcium.dff.npy"), signals)
     np.save(os.path.join(saveDirectory, "calcium.planes.npy"), planes)
     np.save(os.path.join(saveDirectory, "rois.xyz.npy"), locs)
