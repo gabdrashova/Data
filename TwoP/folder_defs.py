@@ -87,7 +87,7 @@ def create_processing_ops():
         "debug": True,
         "plot": False,
         "f0_percentile": 8,
-        "f0_window": 60,
+        "f0_window": 180,
         "zcorrect_mode": "Stack",
         "remove_z_extremes": True,
     }

@@ -193,8 +193,36 @@ def register_zaxis():
 
 # TODO
 def get_F0(Fc, fs, prctl_F=8, window_size=60, verbose=True):
+    """
+    Determines the lowest fluorescence to use for computing deltaF/F.
+   
+
+    Parameters
+    ----------
+    Fc : np.ndarray [t x nROIs]
+        Calcium traces (measured signal) of ROIs.
+    fs : float
+        The frame rate (frames/second/plane).
+    prctl_F : int, optional
+        The percentile from which to take F0. The default is 8.
+    window_size : int, optional
+        The rolling window over which to calculate F0. The default is 60.
+    verbose : bool, optional
+        Whether or not to provide detailed processing information. 
+        The default is True.
+
+    Returns
+    -------
+    F0 : np.ndarray [t x nROIs]
+        The F0 traces for each ROI.
+
+    """
+    # Translates the window size from seconds into frames.
     window_size = int(round(fs * window_size))
+    # Creates an array with the shape of Fc where the F0 values will be placed.
     F0 = np.zeros_like(Fc)
+    # Converts Fc into a pandas array and pads the array using the window size
+    # as a pad width.
     Fc_pd = pd.DataFrame(
         np.pad(
             Fc,
@@ -205,11 +233,13 @@ def get_F0(Fc, fs, prctl_F=8, window_size=60, verbose=True):
             mode="median",
         )
     )
+    # Calculate F0 by checking the percentile specified from the rolling window.
     F0 = np.array(
         Fc_pd.rolling(window_size).quantile(
             prctl_F * 0.01, interpolation="midpoint"
         )
     )
+    # Removes the padded timepoints at the beginning.
     F0 = F0[window_size:]
     # for t in range(0, Fc.shape[0]):
     #     rng = np.arange(t, np.min([len(Fc), t + window_size]))

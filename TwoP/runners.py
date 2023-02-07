@@ -99,7 +99,7 @@ def _process_s2p_singlePlane(
         # Appends the array with the XY positions of the center of the ROI taken from the stat array and the z position of each ROI.
         cellLocs[i, :] = np.append(s["med"], zPos)
 #TODO: continue from here
-    # FCORR stuff
+    # 
     Fc, regPars, F_binValues, N_binValues = correct_neuropil(F, N, fs)
     F0 = get_F0(
         Fc, fs, prctl_F=pops["f0_percentile"], window_size=pops["f0_window"]
