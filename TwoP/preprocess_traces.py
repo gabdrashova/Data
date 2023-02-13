@@ -102,8 +102,9 @@ def correct_neuropil(
     lowActivity = np.nanpercentile(F, 50, 0) # Calculates the F at the 50th percentile. 
     for iROI in range(nROIs):
         # TODO: verbose options
-        # Adds the value of F0 at which point the difference between F and N baselines is minimal.
-        #TODO: WHY
+        # Adds the value of F0 at which point the difference between F and N
+        # baselines is minimal.
+        
         Fc[:, iROI] += F0[ti[iROI], iROI]
         Nc[:, iROI] += N0[ti[iROI], iROI]
         # Gets the current F and N trace.
@@ -114,16 +115,21 @@ def correct_neuropil(
         N_prct = np.nanpercentile(iN, np.array([minNp, maxNp]), axis=0)
         # Divides neuropil values into numN groups.
         binSize = (N_prct[1] - N_prct[0]) / numN
-        # Gets neuropil values regularly spaced across range between minNp and maxNp.
+        # Gets neuropil values regularly spaced across range between minNp and 
+        # maxNp.
         N_binValues[:, iROI] = N_prct[0] + (np.arange(0, stop=numN)) * binSize
 
-        # Discretize values of neuropil between minN and maxN, with numN elements
-        # N_ind contains values: 0...binSize for N values within minNp and maxNp.
+        # Discretizes values of neuropil between minN and maxN, with numN 
+        # elements.
+        # N_ind contains values: 0...binSize for N values within minNp and 
+        # maxNp.
         # Done to determine in which bin each data point belongs to.
         N_ind = np.floor((iN - N_prct[0]) / binSize)
 
-        # Finds the matching (low percentile) value from F trace for each neuropil bin.
-        # This is to determine values of F that are relatively low as these are unlikely to reflect neural spiking.
+        # Finds the matching (low percentile) value from F trace for each 
+        # neuropil bin.
+        # This is to determine values of F that are relatively low as these 
+        # are unlikely to reflect neural spiking.
         for Ni in range(numN):
             tmp = np.ones_like(iF) * np.nan
             tmp[N_ind == Ni] = iF[N_ind == Ni]
@@ -132,23 +138,25 @@ def correct_neuropil(
         noNan = np.where(
             ~np.isnan(F_binValues[:, iROI]) & ~np.isnan(N_binValues[:, iROI])
         )[0]
-        #TODO: CONTINUE
+        
         # perform linear regression between neuropil and signal bins under constraint that 0<slope<2
         # res, _ = optimize.curve_fit(_linear, N_binValues[noNan, iROI], F_binValues[noNan, iROI],
         #                             p0=(np.nanmean(F_binValues[:, iROI]), 0), bounds=([-np.inf, 0], [np.inf, 2]))
+        
         # Finds analytical solution to determine the correction factor
-        #TODO: WHY these equations specifically
+        # by fitting a robust line to the correlation of low values of F with
+        # neuropil values
         a, b, mse = linearAnalyticalSolution(
             N_binValues[noNan, iROI], F_binValues[noNan, iROI], False
         )
         # regPars[:, iROI] = res
         regPars[:, iROI] = (a, b)
-        #TODO: WHY is b (the slope of the linear fit used)
+        
         ## avoid over correction
         # b = min(b, 1)
         corrected_sig = iF - b * iN
 
-        # determine neuropil correct signal
+        # Determines neuropil corrected signal for all ROIs
         signal[:, iROI] = corrected_sig.copy()
     return signal, regPars, F_binValues, N_binValues
 

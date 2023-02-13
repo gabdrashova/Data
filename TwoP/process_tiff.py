@@ -308,7 +308,7 @@ def extract_zprofiles(
     # zstack_reg = registerStacktoRef(zstack,refImg,ops)
 
     if (ROI_masks is None) and (neuropil_masks is None):
-        rois, npils = create_masks(stat, Y, X, ops)
+        rois, npils = create_masks(stat, Y, X, ops) # Suite2P function.
     zProfile, Fneu = extract_traces(zstack, rois, npils, 1)
     zProfile = zero_signal(zProfile)
     Fneu = zero_signal(Fneu)

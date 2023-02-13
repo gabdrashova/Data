@@ -98,12 +98,17 @@ def _process_s2p_singlePlane(
         zPos = piezo[piezoInd]
         # Appends the array with the XY positions of the center of the ROI taken from the stat array and the z position of each ROI.
         cellLocs[i, :] = np.append(s["med"], zPos)
-#TODO: continue from here
-    # 
+    # Calculates the corrected neuropil traces and the specific values that
+    # were used to determine the correction factor (intercept and slope of 
+    # linear fits, F traces bin values, N traces bin values). Refer to function
+    # for further details.
     Fc, regPars, F_binValues, N_binValues = correct_neuropil(F, N, fs)
+    # Calculates the baseline fluorescence F0 used to calculate delta F over F.
     F0 = get_F0(
         Fc, fs, prctl_F=pops["f0_percentile"], window_size=pops["f0_window"]
     )
+    # Calculates delta F oer F given the corrected neuropil traces and the
+    # baseline fluorescence.
     dF = get_delta_F_over_F(Fc, F0)
 
     zprofiles = None
@@ -113,17 +118,17 @@ def _process_s2p_singlePlane(
     ops["ops_path"] = os.path.join(currDir, "ops.npy")
     if not (zstackPath is None):
         try:
-            refImg = ops["refImg"]
+            refImg = ops["refImg"] # Gets the reference image from Suite2P
             zFileName = os.path.join(
                 saveDirectory, "zstackAngle_plane" + str(plane) + ".tif"
             )
-            if not (os.path.exists(zFileName)):
+            if not (os.path.exists(zFileName)): # Registers Z stack here unless Z stack was already registered previously.
                 zstack = register_zstack(
                     zstackPath, spacing=1, piezo=piezo, target_image=refImg
                 )
                 skimage.io.imsave(zFileName, zstack)
                 _, zcorr = compute_zpos(zstack, ops)
-            elif not ("zcorr" in ops.keys()):
+            elif not ("zcorr" in ops.keys()): # Computes Z correlation unless it has already been done.
                 zstack = skimage.io.imread(zFileName)
 
                 ops, zcorr = compute_zpos(zstack, ops)
@@ -131,7 +136,7 @@ def _process_s2p_singlePlane(
             else:
                 zstack = skimage.io.imread(zFileName)
                 zcorr = ops["zcorr"]
-            zTrace = np.argmax(zcorr, 0)
+            zTrace = np.argmax(zcorr, 0) # Gets the Z trace based on the Z correlation matrix.
             zprofiles = extract_zprofiles(
                 currDir,
                 zstack,
