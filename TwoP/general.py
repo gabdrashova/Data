@@ -16,6 +16,28 @@ Created on Wed Aug 31 15:37:13 2022
 
 
 def linearAnalyticalSolution(x, y, noIntercept=False):
+    """
+    
+
+    Parameters
+    ----------
+    x : TYPE
+        DESCRIPTION.
+    y : TYPE
+        DESCRIPTION.
+    noIntercept : TYPE, optional
+        DESCRIPTION. The default is False.
+
+    Returns
+    -------
+    a : TYPE
+        DESCRIPTION.
+    b : TYPE
+        DESCRIPTION.
+    mse : TYPE
+        DESCRIPTION.
+
+    """
     n = len(x)
     a = (np.sum(y) * np.sum(x ** 2) - np.sum(x) * np.sum(x * y)) / (
         n * np.sum(x ** 2) - np.sum(x) ** 2

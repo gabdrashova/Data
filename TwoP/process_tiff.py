@@ -43,7 +43,7 @@ def _fill_plane_piezo(stack, piezoNorm, i, spacing=1):
     a normalised frame.
 
     """
-    # Normalised the piezo trace to the current depth
+    # Normalises the piezo trace to the current depth.
     piezoNorm -= piezoNorm[0]
     piezoNorm += i
 
@@ -56,14 +56,14 @@ def _fill_plane_piezo(stack, piezoNorm, i, spacing=1):
 
     pixelsPerMoveY = np.ones(len(piezoNorm)) * resolutiony
 
-    # Nmber of pixels per piezo step
+    # Gets the number of pixels per piezo step.
     numPixelsY = np.round(pixelsPerMoveY / len(piezoNorm)).astype(int)
 
-    # correct in case of rounding error
+    # Corrects in case of rounding error.
     Yerr = resolutiony - sum(numPixelsY)
     numPixelsY[-1] += Yerr
 
-    # The end points of each time bit
+    # Gets the end points of each time bit.
     pixelsY = np.cumsum(numPixelsY).astype(int)
 
     interp = sp.interpolate.RegularGridInterpolator(
@@ -75,7 +75,7 @@ def _fill_plane_piezo(stack, piezoNorm, i, spacing=1):
         stack,
         fill_value=None,
     )
-    for d in range(len(piezoNorm)):
+    for d in range(len(piezoNorm)): # For each line in Y, 
         endPointY = pixelsY[d]
         depth = piezoNorm[d]
 
@@ -162,22 +162,26 @@ def registerStacktoRef(zstack, refImg, ops=default_ops()):
 # piezo.
 def register_zstack(tiff_path, spacing=1, piezo=None, target_image=None):
     """
-    Loads tiff file containing imaged z-stack, aligns all frames to each other, averages across repetitions, and (if
-    piezo not None) reslices the 3D z-stack so that slant/orientation of the new slices matches the slant of the frames
-    imaged during experiments (slant given by piezo trace).
+    Loads tiff file containing imaged z-stack, aligns all frames to each other,
+    averages across repetitions, and (if piezo not None) reslices the 3D 
+    z-stack so that slant/orientation of the new slices matches the slant of 
+    the frames imaged during experiments (slant given by piezo trace).
 
     Parameters
     ----------
     tiff_path : String
-        Path to tiff file containing z-stack.
+        Path to tiff file containing z-stack. Note the assumed format of the 
+        z stack is [planes,frames,X,Y] with frames refering to the snapshots
+        taken at one plane.
     piezo : np.array [t]
-        Movement of piezo across z-axis for one plane. Unit: microns. Raw taken from niDaq
-    [Note: need to add more input arguments depending on how registration works. Piezo movement might need to provided
-    in units of z-stack slices if tiff header does not contain information about depth in microns]
-    spacing: distance between planes (in microns)
+        Movement of piezo across z-axis for one plane. Unit: microns. Raw taken
+        from niDaq. [Note: need to add more input arguments depending on how 
+        registration works. Piezo movement might need to provided in units of 
+        z-stack slices if tiff header does not contain information about depth 
+        in microns] spacing: distance between planes (in microns).
     target_image : np.array [x x y]
-        Image used by suite2p to align frames to. Is needed to align z-stack to this image and then apply masks at
-        correct positions.
+        Image used by suite2p to align frames to. Is needed to align z-stack 
+        to this image and then apply masks at correct positions.
 
     Returns
     -------
@@ -255,14 +259,16 @@ def extract_zprofiles(
         (output of suite2p so need to check the format of their ROI masks)
         Pixel masks of ROIs in space (x- and y-axis).
     neuropil_masks : np.array [x x y x nROIs]
-        (this assumes that suite2p actually uses masks for neuropil. I'm pretty sure there is this option to use masks
+        (this assumes that suite2p actually uses masks for neuropil. I'm pretty
+         sure there is this option to use masks
         but we need to use this option instead of using "basis functions".)
         Pixel masks of ROI's neuropil in space (x- and y-axis).
     zstack : np.array [x x y x z]
-        Registered z-stack where slices are oriented the same way as imaged planes (output of register_zstack).
+        Registered z-stack where slices are oriented the same way as imaged 
+        planes (output of register_zstack).
     target_image : np.array [x x y]
-        Image used by suite2p to align frames to. Is needed to align z-stack to this image and then apply masks at
-        correct positions.
+        Image used by suite2p to align frames to. Is needed to align z-stack 
+        to this image and then apply masks at correct positions.
     #All of these factors can be replaced by the plane directory - Liad 13/07/2022
     neuropil_correction : np.array [nROIs]
         Correction factors determined by preprocess_traces.correct_neuropil.
@@ -272,7 +278,6 @@ def extract_zprofiles(
     zprofiles : np.array [z x nROIs]
         Depth profiles of ROIs.
     """
-
     """
     Steps
     1) Register z-stack to target image.
@@ -286,15 +291,14 @@ def extract_zprofiles(
       extract.extraction_wrapper
     - to register frames, see line 285 (rigid registration) in /suite2p/registration/register for rigid registration
     """
-
+    # Loads suite2p outputs stat, ops and iscell.
     stat = np.load(
         os.path.join(extraction_path, "stat.npy"), allow_pickle=True
     )
     ops = np.load(
         os.path.join(extraction_path, "ops.npy"), allow_pickle=True
     ).item()
-    isCell = np.load(os.path.join(extraction_path, "iscell.npy")).astype(bool)
-
+    isCell = np.load(os.path.join(extraction_path, "iscell.npy")).astype(bool)    
     ### Step 1
     #
     # X = ops['Lx']
@@ -302,34 +306,43 @@ def extract_zprofiles(
     # if (target_image is None):
     #     refImg = ops['refImg']
     # else:
+    # Gets the resolution in X and Y of the z stack.
     X = zstack.shape[1]
     Y = zstack.shape[2]
-
+    
     # zstack_reg = registerStacktoRef(zstack,refImg,ops)
-
     if (ROI_masks is None) and (neuropil_masks is None):
-        rois, npils = create_masks(stat, Y, X, ops) # Suite2P function.
+        # Suite2P function: creates cell and neuropil masks.
+        rois, npils = create_masks(stat, Y, X, ops) 
+    # Gets the "fluorescence traces" for each ROI within the Z stack. Treats 
+    # each plane in the Z stack like a frame in time; this is the same function
+    # that is used to extract the F and N traces. Also gets the neuropil traces.
     zProfile, Fneu = extract_traces(zstack, rois, npils, 1)
+    # Adds the zero signal value. Refer to function for further details.
     zProfile = zero_signal(zProfile)
     Fneu = zero_signal(Fneu)
+    # Only takes the ROis which are considered cells. 
     zProfile = zProfile[isCell[:, 0], :].T
     Fneu = Fneu[isCell[:, 0], :].T
+    
 
     zprofileRaw = zProfile.T.copy()
-    # Perform neuropil correction
+    # Performs neuropil correction of the zProfile.
     if not (neuropil_correction is None):
         zProfile = zProfile - neuropil_correction.reshape(1, -1) * Fneu
         # zProfile = np.fmax(zProfile,np.ones(zProfile.shape)*Fbl.reshape(-1,1))
         # zProfile = zProfile.T
     # zProfileC = np.zeros(zProfile.shape)
-
+    # Smoothes the Z profile by a user defined smoothing factor.
     if not (smooting_factor is None):
+        
         zProfile = sp.ndimage.gaussian_filter1d(
             zProfile, smooting_factor, axis=0
         )
     depths = np.arange(
         -(zstack.shape[0] - 1) / 2, (zstack.shape[0] - 1) / 2 + 1
     )
+    # Appends the raw and neuropil corrected Z profiles into a dictionary.
     metadata["zprofiles_raw"] = zprofileRaw
     metadata["zprofiles_neuropil"] = Fneu.T
 

@@ -59,7 +59,7 @@ def _process_s2p_singlePlane(
         - dF/F Z corrected traces: np.array[total frames, ROIs]
         - z profiles of each ROI: np.array[z x nROIs]
         - Z trace (which indicate the location of the imaging plane over time): np.array[frames]
-        - Cell locations in the X,Y and Z: np.array[no. of ROIs, 3]
+        - Cell locations in Y, X and Z: np.array[no. of ROIs, 3]
 
     """
     # Sets the current plane to processed.
@@ -96,7 +96,10 @@ def _process_s2p_singlePlane(
         piezoInd = int(np.round((len(piezo) - 1) * relYpos))
         # Determines the Z position of the ROI based on the index calculated in the previous line. 
         zPos = piezo[piezoInd]
-        # Appends the array with the XY positions of the center of the ROI taken from the stat array and the z position of each ROI.
+        # Appends the array with the YX positions of the center of the ROI taken from the stat array and the z position of each ROI.
+        #NOTE: Suite2P outputs the positions in XY as [Y,X], need to be kept in
+        # mind when wanting to associate a cell with it's location in the FOV
+        # as the assumed order would usually be [X,Y].
         cellLocs[i, :] = np.append(s["med"], zPos)
     # Calculates the corrected neuropil traces and the specific values that
     # were used to determine the correction factor (intercept and slope of 
@@ -110,33 +113,49 @@ def _process_s2p_singlePlane(
     # Calculates delta F oer F given the corrected neuropil traces and the
     # baseline fluorescence.
     dF = get_delta_F_over_F(Fc, F0)
-
-    zprofiles = None
-    zTrace = None
-    # hack to avoid random reg directories
+    # Next section: Z correction.
+    zprofiles = None # Creates NoneType object to place the z profiles.
+    zTrace = None # Creates NoneType object to place the z traces.
+    # Specifies the current directory as the path to the registered binary and
+    # ops file (Hack to avoid random reg directories).
     ops["reg_file"] = os.path.join(currDir, "data.bin")
     ops["ops_path"] = os.path.join(currDir, "ops.npy")
+    # Unless there is no Z stack path specified, does Z correction.
     if not (zstackPath is None):
         try:
-            refImg = ops["refImg"] # Gets the reference image from Suite2P
+            refImg = ops["refImg"] # Gets the reference image from Suite2P.
+            # Creates registered Z stack path.
             zFileName = os.path.join(
                 saveDirectory, "zstackAngle_plane" + str(plane) + ".tif"
             )
-            if not (os.path.exists(zFileName)): # Registers Z stack here unless Z stack was already registered previously.
+            # Registers Z stack here unless it was already registered and saved.
+            if not (os.path.exists(zFileName)): 
                 zstack = register_zstack(
                     zstackPath, spacing=1, piezo=piezo, target_image=refImg
                 )
+                # Saves registered Z stack in the specified or default saveDir.
                 skimage.io.imsave(zFileName, zstack)
+                # Calculates how correlated the frames are with each plane 
+                # within the Z stack (suite2p function).
                 _, zcorr = compute_zpos(zstack, ops)
-            elif not ("zcorr" in ops.keys()): # Computes Z correlation unless it has already been done.
+            # Calculates Z correlation if Z stack was already registered.    
+            elif not ("zcorr" in ops.keys()): 
                 zstack = skimage.io.imread(zFileName)
-
+                # Calculates how correlated the frames are with each plane 
+                # within the Z stack (suite2p function).
                 ops, zcorr = compute_zpos(zstack, ops)
+                # Saves the current ops path to the ops file.
                 np.save(ops["ops_path"], ops)
+            # If the Z stack has been registered and Z correlation has been 
+            # done, loads the saved registered Z stack and the Z correlation 
+            # values from the ops.
             else:
                 zstack = skimage.io.imread(zFileName)
                 zcorr = ops["zcorr"]
-            zTrace = np.argmax(zcorr, 0) # Gets the Z trace based on the Z correlation matrix.
+            # Gets the location of each frame in Z based on the highest 
+            # correlation value.
+            zTrace = np.argmax(zcorr, 0) 
+            # Computes the Z profiles for each ROI.
             zprofiles = extract_zprofiles(
                 currDir,
                 zstack,
@@ -144,7 +163,7 @@ def _process_s2p_singlePlane(
                 metadata=processing_metadata,
                 smooting_factor=2,
             )
-
+            # Corrects traces for z motion based on the Z profiles.
             Fcz = correct_zmotion(
                 dF,
                 zprofiles,
@@ -153,11 +172,17 @@ def _process_s2p_singlePlane(
                 metadata=pops,
             )
         except:
+            # If there is an error in processing, the uncorrected delta F over
+            # F is considered.
             print(currDir + ": Error in correcting z-motion")
             print(traceback.format_exc())
             Fcz = dF
     else:
+        # If no Z correction is performed (for example if no Z stack was given),
+        # only the uncorrected delta F over F is considered.
         Fcz = dF
+    # Places all the results in a dictionary (dF/F, Z corrected dF/F, z profiles
+    # z traces and the cell locations in X, Y and Z)    
     results = {
         "dff": dF,
         "dff_zcorr": Fcz,

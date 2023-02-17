@@ -57,7 +57,7 @@ def define_directories():
     """
     
     csvDir = "D:\\preprocess.csv"
-    s2pDir = "Z:/Suite2Pprocessedfiles/"
+    s2pDir = "D:/Suite2Pprocessedfiles/"
     zstackDir = "Z:\\RawData\\"
     metadataDir = "Z:\\RawData\\"
 
@@ -85,7 +85,7 @@ def create_processing_ops():
     """
     pops = {
         "debug": True,
-        "plot": False,
+        "plot": True,
         "f0_percentile": 8,
         "f0_window": 180,
         "zcorrect_mode": "Stack",

@@ -145,18 +145,22 @@ def correct_neuropil(
         
         # Finds analytical solution to determine the correction factor
         # by fitting a robust line to the correlation of low values of F with
-        # neuropil values
+        # neuropil values.
         a, b, mse = linearAnalyticalSolution(
             N_binValues[noNan, iROI], F_binValues[noNan, iROI], False
         )
         # regPars[:, iROI] = res
+        # Structures the intercept (a) and slope (b) values for each ROi into 
+        # an array.
         regPars[:, iROI] = (a, b)
         
         ## avoid over correction
         # b = min(b, 1)
+        # Calculates the corrected signal by multiplying the neuropil values by
+        # the slope of the linear fit and subtracting this from F.
         corrected_sig = iF - b * iN
 
-        # Determines neuropil corrected signal for all ROIs
+        # Gets the neuropil corrected signal for all ROIs.
         signal[:, iROI] = corrected_sig.copy()
     return signal, regPars, F_binValues, N_binValues
 
@@ -164,17 +168,21 @@ def correct_neuropil(
 # TODO
 def correct_zmotion(F, zprofiles, ztrace, ignore_faults=True, metadata={}):
     """
-    Corrects changes in fluorescence due to brain movement along z-axis (depth). Method is based on algorithm
-    described in Ryan, ..., Lagnado (J Physiol, 2020)
+    Corrects changes in fluorescence due to brain movement along z-axis 
+    (depth). Method is based on algorithm described in Ryan, ..., Lagnado 
+    (J Physiol, 2020).
 
     Parameters
     ----------
     F : np.array [t x nROIs]
-        Calcium traces (measured signal) of ROIs from a single(!) plane. It is assumed that these are neuropil corrected!
+        Calcium traces (measured signal) of ROIs from a single(!) plane. 
+        It is assumed that these are neuropil corrected!
     zprofiles : np.array [slices x nROIs]
-        Fluorescence profiles of ROIs across depth of z-stack. These profiles are assumed to be neuropil corrected!
+        Fluorescence profiles of ROIs across depth of z-stack. 
+        These profiles are assumed to be neuropil corrected!
     ztrace : np.array [t]
-        Depth of each frame of the imaged plane. Indices in this array refer to slices in zprofiles.
+        Depth of each frame of the imaged plane. 
+        Indices in this array refer to slices in zprofiles.
 
     Returns
     -------
@@ -192,17 +200,23 @@ def correct_zmotion(F, zprofiles, ztrace, ignore_faults=True, metadata={}):
     # Step 1 - Consider smoothing instead of a Moffat function. Considering how our stacks look
 
     # find correction factor
-
+    # Chooses the depth to which to compare all the ROI depths (this is the
+    # median depth across the whole zTrace).
     referenceDepth = int(np.round(np.median(ztrace)))
     # zprofiles = zprofiles - np.min(zprofiles, 0)
+    # Calculates the correction factor by dividing the z profiles with the
+    # z profile at the reference depth.
     correctionFactor = zprofiles / zprofiles[referenceDepth, :]
-
-    # Step 2 - If taking the raw data from ops need to get the correct frame ...
-    # by taking the max correlation for each time point
+    # Assigns the correction factor for each frame based on its location in the
+    # Z trace.
     correctionMatrix = correctionFactor[ztrace, :]
-    # Step 3 - Correct
+    # Applies the Z correction by dividing the frames in the fluorescence 
+    # traces by the correction factor. 
     signal = F / correctionMatrix
-
+    
+    # Removes the timepoints where imaging took place in a plane that is 
+    # meaningless to a cell's activity and returns the corrected signal.
+    # See function for details.
     if ignore_faults:
         signal = remove_zcorrected_faults(
             ztrace, correctionFactor, signal, metadata
@@ -277,9 +291,10 @@ def get_F0(Fc, fs, prctl_F=8, window_size=60, verbose=True):
 # TODO: understand why np.fmax is used
 def get_delta_F_over_F(Fc, F0):
     """
-    Calculates delta F over F by subtracting F0 from Fc and dividing this by
-    the maximum of the mean F of F0.
-
+    Calculates delta F over F. Note instead of simply dividing (F-F0) by F0, 
+    the mean of F0 is used and only values above 1 are taken. This is to not
+    wrongly increase the value of F if F0 is smaller than 1.
+   
     Parameters
     ----------
     Fc :np.ndarray [t x nROIs]
@@ -290,7 +305,7 @@ def get_delta_F_over_F(Fc, F0):
     Returns
     -------
     np.ndarray [t x nROIs]
-    Normalised fluorescence traces (dF/F) of ROIs.
+    Change in fluorescence (dF/F) of ROIs.
 
     """
     return (Fc - F0) / np.fmax(1, np.nanmean(F0, 0))
@@ -301,20 +316,21 @@ def remove_zcorrected_faults(ztrace, zprofiles, signals, metadata={}):
     This functions cleans timepoints in the trace where the imaging takes place
     in a plane that is meaningless as to cell activity.
     This is defined as times when there are two peaks or slopes in the imaging
-    region and the imaging plane is in the second slop.
+    region and the imaging plane is in the second slope.
 
     Parameters
     ----------
-    ztrace : TYPE
-        the imaging plane on the z-axis
-    zprofiles : TYPE
-        the z-profiles of all the cells.
-    signals : TYPE
-        the signal traces.
+    ztrace : np.array[t]
+        The imaging plane on the z-axis for each frame.
+    zprofiles : np.ndarray [z x nROIs]
+        Depth profiles of all ROIs.
+    signals : np.ndarray [t x nROIs]
+        Calcium traces (measured signal) of ROIs.
 
     Returns
     -------
-    signals: the corrected sigals with the faulty timepoints removed.
+    np.ndarray [t x nROIs]
+    signals: the corrected signals with the faulty timepoints removed.
 
     """
 
