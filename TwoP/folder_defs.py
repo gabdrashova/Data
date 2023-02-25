@@ -57,7 +57,7 @@ def define_directories():
     """
     
     csvDir = "D:\\preprocess.csv"
-    s2pDir = "D:/Suite2Pprocessedfiles/"
+    s2pDir = "Z:/Suite2Pprocessedfiles/"
     zstackDir = "Z:\\RawData\\"
     metadataDir = "Z:\\RawData\\"
 
@@ -67,15 +67,20 @@ def define_directories():
 def create_processing_ops():
     """
     Creates the processing settings which includes:
-    - debug: Whether or not to debug (if True, lets you see exactly at which lines errors occur, 
-      but parallel processing won't be done so processing will be slower).
-    - plot: For each sorted ROI whether to plot the uncorrected, corrected, normalised traces, 
-      Z location and Z profile.
-    - f0_percentile: The F0 percentile which determines which percentile of the lowest fluorescence distribution to use.
-    - f0_window: The length of the rolling window in time (s) over which to calculate F0.
-    - zcorrect_mode: The mode of Z correction such as with the Z stack ("Stack").
+    - debug: Whether or not to debug (if True, lets you see exactly at which 
+      lines errors occur, but parallel processing won't be done so processing 
+      will be slower).
+    - plot: For each sorted ROI whether to plot the uncorrected, corrected, 
+    normalised traces, Z location and Z profile.
+    - f0_percentile: The F0 percentile which determines which percentile of 
+    the lowest fluorescence distribution to use.
+    - f0_window: The length of the rolling window in time (s) over which to 
+    calculate F0.
+    - zcorrect_mode: The mode of Z correction such as with the Z stack 
+    ("Stack").
     - remove_z_extremes: Whether or not to remove the Z extremes in the traces.
-    Please note: to change preprocessing settings, change the values in pops in this function
+    Please note: to change preprocessing settings, change the values in pops 
+    in this function.
     Returns
     -------
     pops : dictionary [6]
