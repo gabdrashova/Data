@@ -246,7 +246,7 @@ def _process_s2p_singlePlane(
             )
             # Plots the z-corrected dF/F and the uncorrected dF/F.
             ax["zcorr"].plot(Fcz[:, i], "k")
-            ax["zcorr"].plot(dF[:, i], "b--", linewidth=1, alpha = 0.1)
+            ax["zcorr"].plot(dF[:, i], "b--", linewidth=3)
             ax["zcorr"].legend(
                 ["dF/F", "dF/F z-zcorrected"],
                 bbox_to_anchor=(1.01, 1),
