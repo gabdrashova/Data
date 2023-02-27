@@ -278,8 +278,7 @@ def remove_zcorrected_faults(ztrace, zprofiles, signals, metadata={}):
         # Check if differential is positive before crossing
         # If that's the case we're golden, the problem is if negative
         # Then it's a trough and if depends on what side of the trough we are
-        # imaging
-        if dif[planeCrossingInd, i] < 0:
+        if dif[planeCrossing - 1, i] < 0:
             if distFromPlane[planeCrossingInd] < 0:
                 removeInd = np.where(ztrace > planeCrossing + 1)[0]
             else:
@@ -295,22 +294,22 @@ def _linear(x, a, b):
 
 def zero_signal(F):
     """
-   This function adds the value 19520 to all ROIs across time.This value represents the absolute zero signal 
-   and was obtained by averaging the darkest frame over many imaging sessions. It is important to note 
-   that the absolute zero value is arbitrary and depends on the voltage range of the PMTs.
-   
-   
+    This function adds the value 19520 to all ROIs across time.This value represents the absolute zero signal
+    and was obtained by averaging the darkest frame over many imaging sessions. It is important to note
+    that the absolute zero value is arbitrary and depends on the voltage range of the PMTs.
 
-   Parameters
-   ----------
-   F : np.ndarray [t x nROIs]
-   Calcium traces (measured signal) of ROIs.
 
-   Returns
-   -------
-   F : np.ndarray [t x nROIs]
-   Calcium traces (measured signal) of ROIs with the addition of the absolute
-   zero signal.
 
-   """
+    Parameters
+    ----------
+    F : np.ndarray [t x nROIs]
+    Calcium traces (measured signal) of ROIs.
+
+    Returns
+    -------
+    F : np.ndarray [t x nROIs]
+    Calcium traces (measured signal) of ROIs with the addition of the absolute
+    zero signal.
+
+    """
     return F + 19520
