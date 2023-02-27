@@ -219,7 +219,7 @@ def _process_s2p_singlePlane(
 
     if pops["plot"]:
         for i in range(dF.shape[-1]):
-           
+           # Print full
             plotArrangement = [
                 ["profile", "f"],
                 ["profile", "corr"],
@@ -250,7 +250,6 @@ def _process_s2p_singlePlane(
             )
             ax["zcorr"].set_xlabel("time (frames)")
             if not zTrace is None:
-                # Plots the z trace.
                 ax["trace"].plot(zTrace)
                 ax["trace"].legend(
                     ["Z trace"], bbox_to_anchor=(1.01, 1), loc="upper left"
@@ -281,9 +280,7 @@ def _process_s2p_singlePlane(
                 "wb",
             ) as file:
                 pickle.dump(f, file)
-
-            # Plots the same traces as above but for only 500 frames to see
-            # the details.
+            # Print Part
             f, ax = plt.subplot_mosaic(plotArrangement)
             ax["f"].plot(F[1:500, i], "b")
             ax["f"].plot(N[1:500, i], "r")
