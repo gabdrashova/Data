@@ -219,7 +219,7 @@ def _process_s2p_singlePlane(
 
     if pops["plot"]:
         for i in range(dF.shape[-1]):
-           # Print full
+            # Print full
             plotArrangement = [
                 ["profile", "f"],
                 ["profile", "corr"],
@@ -296,7 +296,6 @@ def _process_s2p_singlePlane(
                 bbox_to_anchor=(1.01, 1),
                 loc="upper left",
             )
-
             ax["zcorr"].plot(Fcz[1:500, i], "k")
             ax["zcorr"].plot(dF[1:500, i], "b--", linewidth=3)
             ax["zcorr"].legend(
