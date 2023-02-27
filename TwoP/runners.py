@@ -216,8 +216,7 @@ def _process_s2p_singlePlane(
         "zTrace": zTrace,
         "locs": cellLocs,
     }
-    # Plots the neuropil correction, z correction, z profile and z
-    # trace for each ROI.
+
     if pops["plot"]:
         for i in range(dF.shape[-1]):
            
@@ -228,7 +227,6 @@ def _process_s2p_singlePlane(
                 ["profile", "trace"],
             ]
             f, ax = plt.subplot_mosaic(plotArrangement)
-            # Plots the raw fluorescence and neuropil trace.
             ax["f"].plot(F[:, i], "b")
             ax["f"].plot(N[:, i], "r")
             ax["f"].legend(
@@ -236,7 +234,6 @@ def _process_s2p_singlePlane(
                 bbox_to_anchor=(1.01, 1),
                 loc="upper left",
             )
-            # Plots the neuropil corrected trace and the baseline fluorescence.
             ax["corr"].plot(Fc[:, i], "k")
             ax["corr"].plot(F0[:, i], "b", linewidth=4, zorder=10)
             ax["corr"].legend(
@@ -244,7 +241,6 @@ def _process_s2p_singlePlane(
                 bbox_to_anchor=(1.01, 1),
                 loc="upper left",
             )
-            # Plots the z-corrected dF/F and the uncorrected dF/F.
             ax["zcorr"].plot(Fcz[:, i], "k")
             ax["zcorr"].plot(dF[:, i], "b--", linewidth=3)
             ax["zcorr"].legend(
@@ -260,7 +256,6 @@ def _process_s2p_singlePlane(
                     ["Z trace"], bbox_to_anchor=(1.01, 1), loc="upper left"
                 )
             if not zprofiles is None:
-                # Plots the z profile.
                 ax["profile"].plot(zprofiles[:, i], range(zprofiles.shape[0]))
                 ax["profile"].legend(
                     ["Z profile"], bbox_to_anchor=(1.01, 1), loc="upper left"
@@ -270,7 +265,6 @@ def _process_s2p_singlePlane(
 
             manager = plt.get_current_fig_manager()
             manager.full_screen_toggle()
-            # Saves figures as png and pickle file.
             plt.savefig(
                 os.path.join(
                     saveDirectory,
