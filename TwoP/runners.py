@@ -30,66 +30,158 @@ from Data.TwoP.folder_defs import create_processing_ops
 def _process_s2p_singlePlane(
     pops, planeDirs, zstackPath, saveDirectory, piezo, plane
 ):
+    """
+    
+
+    Parameters
+    ----------
+    pops : dict [6]
+        The dictionary with all the processing infomration needed. Refer to the
+        function create_processing_ops in folder_defs for a more in depth 
+        description.
+    planeDirs : list [str of directories]
+        List containing the directories refering to the plane subfolders in the
+        suite2p folder.
+    zstackPath : str [zStackDir\Animal\Z stack folder\Z stack.tif]
+        The path of the acquired z-stack.
+    saveDirectory : str, optional
+        the directory where the processed data will be saved.
+        If None will add a ProcessedData directory to the suite2pdir. 
+        The default is None.
+    piezo : np.array [miliseconds in one frame, nplanes]
+        Movement of piezo across z-axis for all planes. 
+        Location in depth (in microns) is for each milisecond within one plane.
+    plane : int
+        The current plane to process.
+
+    Returns
+    -------
+    results : dict [5]
+        Returns a dictinary which contains the 
+        - deltaF/F traces: np.array[total frames, ROIs]
+        - dF/F Z corrected traces: np.array[total frames, ROIs]
+        - z profiles of each ROI: np.array[z x nROIs]
+        - Z trace (which indicate the location of the imaging plane over time):
+            np.array[frames]
+        - Cell locations in Y, X and Z: np.array[no. of ROIs, 3]
+
+    """
+    # Sets the current plane to processed.
     currDir = planeDirs[plane]
-
-    F = np.load(os.path.join(currDir, "F.npy"), allow_pickle=True).T
-    N = np.load(os.path.join(currDir, "Fneu.npy")).T
+    # Array of fluorescence traces [ROIs x timepoints].
+    F = np.load(os.path.join(currDir, "F.npy"), allow_pickle=True).T 
+    # Array of neuropil traces [ROIs x timepoints].
+    N = np.load(os.path.join(currDir, "Fneu.npy")).T 
+    # Array to determine if an ROI is a cell [ROIs].
     isCell = np.load(os.path.join(currDir, "iscell.npy")).T
-    stat = np.load(os.path.join(currDir, "stat.npy"), allow_pickle=True)
-    ops = np.load(os.path.join(currDir, "ops.npy"), allow_pickle=True).item()
+    # Array of objects with statistics computed for each cell [ROIs]
+    stat = np.load(os.path.join(currDir, "stat.npy"), allow_pickle=True) 
+    #  Dictionary of options and intermediate outputs.
+    ops = np.load(os.path.join(currDir, "ops.npy"), allow_pickle=True).item() 
+    #TODO: why an empty dict here?
     processing_metadata = {}
+    
+    # Gets the acquisition frame rate.
+    fs = ops["fs"] 
+    # Updates F to only include the ROIs considered cells.
+    F = F[:, isCell[0, :].astype(bool)] 
+    # Updates N to only include the ROIs considered cells.
+    N = N[:, isCell[0, :].astype(bool)] 
+    # Updates stat to only include the ROIs considered cells.
+    stat = stat[isCell[0, :].astype(bool)] 
 
-    fs = ops["fs"]
-    F = F[:, isCell[0, :].astype(bool)]
-    N = N[:, isCell[0, :].astype(bool)]
-    stat = stat[isCell[0, :].astype(bool)]
+    # Creates array to place the X, Y and Z positions of ROIs.
+    cellLocs = np.zeros((len(stat), 3)) 
+    # Gets the resolution (in pixels) along the y dimension.
+    ySpan = ops["refImg"].shape[1] 
 
-    cellLocs = np.zeros((len(stat), 3))
-    ySpan = ops["refImg"].shape[1]
+    # Adds the absolute signal value to F, see function for a more details.
+    F = zero_signal(F) 
+    # Adds the absolute signal value to N, see function for a more details.
+    N = zero_signal(N) 
 
-    F = zero_signal(F)
-    N = zero_signal(N)
-
-    # Get cell locations
+    # For each ROI, the location is determined from the suite2p output "stat" 
+    # (for X and Y) and from the piezo (for Z).
     for i, s in enumerate(stat):
+        # Determines the relative Y position in the FOV by getting the 
+        # location in pixels of the center of the ROI and divides this by the 
+        # total resolution.
         relYpos = s["med"][1] / ySpan
+        # Due to the fast volume scanning technique used (with a piezo), 
+        # the plane is imaged at a slant which spans the Y dimension.
+        # So the location of the cell in Z depends on its position in Y. 
+        # For each plane, the piezo array contains the location in Z as it 
+        # scans through the plane. To determine the correct Z location,
+        # the relative Y position was computed in the previous line to compute
+        # the index in the piezo array which corresponds to the ROIs location.
         piezoInd = int(np.round((len(piezo) - 1) * relYpos))
+        # Determines the Z position of the ROI based on the index calculated 
+        # in the previous line. 
         zPos = piezo[piezoInd]
+        # Appends the array with the YX positions of the center of the ROI 
+        # taken from the stat array and the z position of each ROI.
+        #NOTE: Suite2P outputs the positions in XY as [Y,X], need to be kept in
+        # mind when wanting to associate a cell with it's location in the FOV
+        # as the assumed order would usually be [X,Y].
         cellLocs[i, :] = np.append(s["med"], zPos)
-
-    # FCORR stuff
+        
+    # Calculates the corrected neuropil traces and the specific values that
+    # were used to determine the correction factor (intercept and slope of 
+    # linear fits, F traces bin values, N traces bin values). Refer to function
+    # for further details.
     Fc, regPars, F_binValues, N_binValues = correct_neuropil(F, N, fs)
+    # Calculates the baseline fluorescence F0 used to calculate delta F over F.
     F0 = get_F0(
         Fc, fs, prctl_F=pops["f0_percentile"], window_size=pops["f0_window"]
     )
+    # Calculates delta F oer F given the corrected neuropil traces and the
+    # baseline fluorescence.
     dF = get_delta_F_over_F(Fc, F0)
-
-    zprofiles = None
-    zTrace = None
-    # hack to avoid random reg directories
+    
+    
+    # Multi-step process for Z correction.
+    zprofiles = None # Creates NoneType object to place the z profiles.
+    zTrace = None # Creates NoneType object to place the z traces.
+    # Specifies the current directory as the path to the registered binary and
+    # ops file (Hack to avoid random reg directories).
     ops["reg_file"] = os.path.join(currDir, "data.bin")
     ops["ops_path"] = os.path.join(currDir, "ops.npy")
+    # Unless there is no Z stack path specified, does Z correction.
     if not (zstackPath is None):
         try:
-            refImg = ops["refImg"]
+            refImg = ops["refImg"] # Gets the reference image from Suite2P.
+            # Creates registered Z stack path.
             zFileName = os.path.join(
                 saveDirectory, "zstackAngle_plane" + str(plane) + ".tif"
             )
-            if not (os.path.exists(zFileName)):
+            # Registers Z stack unless it was already registered and saved.
+            if not (os.path.exists(zFileName)): 
                 zstack = register_zstack(
                     zstackPath, spacing=1, piezo=piezo, target_image=refImg
                 )
+                # Saves registered Z stack in the specified or default saveDir.
                 skimage.io.imsave(zFileName, zstack)
+                # Calculates how correlated the frames are with each plane 
+                # within the Z stack (suite2p function).
                 _, zcorr = compute_zpos(zstack, ops)
-            elif not ("zcorr" in ops.keys()):
+            # Calculates Z correlation if Z stack was already registered.    
+            elif not ("zcorr" in ops.keys()): 
                 zstack = skimage.io.imread(zFileName)
-
+                # Calculates how correlated the frames are with each plane 
+                # within the Z stack (suite2p function).
                 ops, zcorr = compute_zpos(zstack, ops)
+                # Saves the current ops path to the ops file.
                 np.save(ops["ops_path"], ops)
+            # If the Z stack has been registered and Z correlation has been 
+            # done, loads the saved registered Z stack and the Z correlation 
+            # values from the ops.
             else:
                 zstack = skimage.io.imread(zFileName)
                 zcorr = ops["zcorr"]
-            zTrace = np.argmax(zcorr, 0)
+            # Gets the location of each frame in Z based on the highest 
+            # correlation value.
+            zTrace = np.argmax(zcorr, 0) 
+            # Computes the Z profiles for each ROI.
             zprofiles = extract_zprofiles(
                 currDir,
                 zstack,
@@ -97,7 +189,7 @@ def _process_s2p_singlePlane(
                 metadata=processing_metadata,
                 smooting_factor=2,
             )
-
+            # Corrects traces for z motion based on the Z profiles.
             Fcz = correct_zmotion(
                 dF,
                 zprofiles,
@@ -106,11 +198,17 @@ def _process_s2p_singlePlane(
                 metadata=pops,
             )
         except:
+            # If there is an error in processing, the uncorrected delta F over
+            # F is considered.
             print(currDir + ": Error in correcting z-motion")
             print(traceback.format_exc())
             Fcz = dF
     else:
+        # If no Z correction is performed (for example if no Z stack was given)
+        # only the uncorrected delta F over F is considered.
         Fcz = dF
+    # Places all the results in a dictionary (dF/F, Z corrected dF/F, 
+    # z profiles, z traces and the cell locations in X, Y and Z).
     results = {
         "dff": dF,
         "dff_zcorr": Fcz,
@@ -144,6 +242,10 @@ def _process_s2p_singlePlane(
                 loc="upper left",
             )
 
+            
+=======
+
+
             ax["zcorr"].plot(Fcz[:, i], "k")
             ax["zcorr"].plot(dF[:, i], "b--", linewidth=3)
             ax["zcorr"].legend(
@@ -167,7 +269,6 @@ def _process_s2p_singlePlane(
 
             manager = plt.get_current_fig_manager()
             manager.full_screen_toggle()
-
             plt.savefig(
                 os.path.join(
                     saveDirectory,
@@ -184,7 +285,6 @@ def _process_s2p_singlePlane(
                 "wb",
             ) as file:
                 pickle.dump(f, file)
-
             # Print Part
             f, ax = plt.subplot_mosaic(plotArrangement)
             ax["f"].plot(F[1:500, i], "b")
@@ -201,6 +301,9 @@ def _process_s2p_singlePlane(
                 bbox_to_anchor=(1.01, 1),
                 loc="upper left",
             )
+
+            
+=======
 
             ax["zcorr"].plot(Fcz[1:500, i], "k")
             ax["zcorr"].plot(dF[1:500, i], "b--", linewidth=3)
@@ -261,51 +364,65 @@ def process_s2p_directory(
     debug=False,
 ):
     """
-    This function runs over a suite2p directory and pre-processes the data in each plane
-    the pre processing includes:
+    This function runs over a suite2p directory and pre-processes the data in 
+    each plane the pre processing includes:
         neuropil correction
         z-trace extraction and correction according to profile
         at the function saves all the traces together
 
     Parameters
     ----------
-    suite2pDirectory : TYPE
+    suite2pDirectory : str [s2pDir/Animal/Date/suite2p]
         the suite2p parent directory, where the plane directories are.
     piezoTraces : [time X plane] um
         a metadata directory for the piezo trace.
-    zstackPath : TYPE
+    zstackPath : str [zStackDir\Animal\Z stack folder\Z stack.tif]
         the path of the acquired z-stack.
-    saveDirectory : TYPE, optional
-        the directory where the processed data will be saved. If None will add a ProcessedData directory to the suite2pdir. The default is None.
+    saveDirectory : str, optional
+        the directory where the processed data will be saved. If None will add
+        a ProcessedData directory to the suite2pdir. The default is None.
 
     Returns
     -------
     None.
 
     """
-
     if saveDirectory is None:
+        # Creates the directory where the processed data will be saved.
         saveDirectory = os.path.join(suite2pDirectory, "ProcessedData")
     if not os.path.isdir(saveDirectory):
         os.makedirs(saveDirectory)
+    # Creates a list which contains the directories to the subfolders for each 
+    # plane.
     planeDirs = glob.glob(os.path.join(suite2pDirectory, "plane*"))
+    # Creates a list with the subfolder which contains the combined data from 
+    # all planes.
     combinedDir = glob.glob(os.path.join(suite2pDirectory, "combined*"))
-
+    # Loads the ops dictionary from the combined directory.
     ops = np.load(
         os.path.join(combinedDir[0], "ops.npy"), allow_pickle=True
     ).item()
+    # Loads the number of planes into a variable.
     numPlanes = ops["nplanes"]
-
+    # Creates an array with the plane range. 
     planeRange = np.arange(numPlanes)
+    
+    # Removes the ignored plane (if specified) from the plane range array.
     if not (ignorePlanes is None):
         ignorePlanes = np.intersect1d(planeRange, ignorePlanes)
         planeRange = np.delete(planeRange, ignorePlanes)
+    # Determine the absolute time before processing.
     preTime = time.time()
-    # TODO: extract planes
+   
+    # Specifies the amount of parallel jobs to decrease processing time. 
+    # If in debug mode, there will be no parallel processing.
     if not debug:
         jobnum = 4
     else:
         jobnum = 1
+    # Processes the 2P data for the planes specified in the plane range.
+    # This gives a list of dictionaries with all the planes. 
+    # Refer to the function for a more thorough description. 
     results = Parallel(n_jobs=jobnum, verbose=5)(
         delayed(_process_s2p_singlePlane)(
             pops, planeDirs, zstackPath, saveDirectory, piezoTraces[:, p], p
@@ -313,36 +430,51 @@ def process_s2p_directory(
         for p in planeRange
     )
     # signalList = _process_s2p_singlePlane(planeDirs,zstackPath,saveDirectory,piezoTraces[:,0],1)
+    # Determines the absolute time after processing.
     postTime = time.time()
     print("Processing took: " + str(postTime - preTime) + " ms")
+    
+    # Creates lists to place the outputs from the function 
+    # _process_s2p_singlePlane.
     planes = np.array([])
 
     signalList = []
     signalLocs = []
     zTraces = []
     zProfiles = []
+    # Appends lists with the results for all the planes.
     for i in range(len(results)):
         signalList.append(results[i]["dff_zcorr"])
         signalLocs.append(results[i]["locs"])
         zTraces.append(results[i]["zTrace"])
         zProfiles.append(results[i]["zProfiles"])
+        # Places the signal into an array. 
         res = signalList[i]
+        # Specifies which plane each ROI belongs to.
         planes = np.append(planes, np.ones(res.shape[1]) * planeRange[i])
-    # TODO: combine results
-    # check that all signals are the same length
-    minLength = 10**10
+    # Specifies number to compare the length of the signals to.
+    minLength = 10**10 
     for i in range(len(signalList)):
+        # Checks the minumum length of the signals for each plane.
         minLength = np.min((signalList[i].shape[0], minLength))
     for i in range(len(signalList)):
+        # Updates the signalList to only include frames until the minimum 
+        # length determined above.
+        # This is done to discard any additional frames that were recorded for
+        # some planes but not all.
         signalList[i] = signalList[i][:minLength, :]
         if not zTraces[i] is None:
+            # Updates the zTraces to only include frames until the minimum 
+            # length determined above.
             zTraces[i] = zTraces[i][:minLength]
+    # Combines results from each plane into a single array for signals, 
+    # locations, zProfile and zTrace.
     signals = np.hstack(signalList)
     locs = np.vstack(signalLocs)
     zProfile = np.hstack(zProfiles)
     zTrace = np.vstack(zTraces)
 
-    # save stuff
+    # Saves the results as individual npy files.
     np.save(os.path.join(saveDirectory, "calcium.dff.npy"), signals)
     np.save(os.path.join(saveDirectory, "calcium.planes.npy"), planes)
     np.save(os.path.join(saveDirectory, "rois.xyz.npy"), locs)
@@ -748,8 +880,9 @@ def read_csv_produce_directories(dataEntry, s2pDir, zstackDir, metadataDir):
     Parameters
     ----------
     dataEntry : pandas DataFrame [amount of experiments, 6]
-        The data from the preprocess.csv file in a pandas dataframe. This should have been
-        created in the main_preprocess file; assumes these columns are included:
+        The data from the preprocess.csv file in a pandas dataframe. 
+        This should have been created in the main_preprocess file; assumes 
+        these columns are included:
             - Name
             - Date
             - Zstack
@@ -757,26 +890,30 @@ def read_csv_produce_directories(dataEntry, s2pDir, zstackDir, metadataDir):
             - SaveDir
             - Process
     s2pDir : string
-        Filepath to the Suite2P processed folder. For more details on what this should contain
-        please look at the define_directories function definition in folder_defs.
+        Filepath to the Suite2P processed folder. For more details on what this
+        should contain please look at the define_directories function 
+        definition in folder_defs.
     zstackDir : string
         Filepath to the Z stack.For more details on what this should contain
-        please look at the define_directories function definition in folder_defs.
+        please look at the define_directories function definition in 
+        folder_defs.
     metadataDir : string
-        Filepath to the metadata directory.For more details on what this should contain
-        please look at the define_directories function definition in folder_defs.
+        Filepath to the metadata directory.For more details on what this 
+        should contain please look at the define_directories function 
+        definition in folder_defs.
 
     Returns
     -------
     s2pDirectory : string [s2pr\Animal\Date\suite2p]
         The concatenated Suite2P directory.
-    zstackPath : string [zstackDir\Animal\Date\Z stack value from dataEntry\Z_stack_file.tif]
+    zstackPath : string [zstackDir\Animal\Date\Z stack value from 
+        dataEntry\Z_stack_file.tif]
         The concatenated Z stack directory.
     metadataDirectory : string [metadataDir\Animal\Date]
         The concatenated metadata directory.
     saveDirectory : string [SaveDir from dataEntry or ]
-        The save directory where all the processed files are saved. If not specified,
-        will be saved in the suite2p folder.
+        The save directory where all the processed files are saved. If not 
+        specified, will be saved in the suite2p folder.
 
     """
     # The data from each  dataEntry column is placed into variables.
@@ -795,7 +932,8 @@ def read_csv_produce_directories(dataEntry, s2pDir, zstackDir, metadataDir):
         raise ValueError(
             "suite 2p directory " + s2pDirectory + "was not found."
         )
-    # Checks if zStack directory number has the right shape (is not a float or a NaN).
+    # Checks if zStack directory number has the right shape (is not a float 
+    # or a NaN).
     if (type(zstack) is float) and (np.isnan(zstack)):
         zstackPath = None
         zstackDirectory = None
@@ -803,11 +941,13 @@ def read_csv_produce_directories(dataEntry, s2pDir, zstackDir, metadataDir):
         # Creates the Z Stack directory.
         zstackDirectory = os.path.join(zstackDir, name, date, str(zstack))
         try:
-            # Returns a path to the tif file with the Z stack within the specified zstackDirectory.
+            # Returns a path to the tif file with the Z stack within the 
+            # specified zstackDirectory.
             zstackPath = glob.glob(os.path.join(zstackDirectory, "*.tif"))[0]
         except:
-            # If no Z stack directory was specified in the preprocess file, returns a ValueError.
-            # Note that the Z stack is essential for performing the Z correction!
+            # If no Z stack directory was specified in the preprocess file, 
+            # returns a ValueError.
+            # Note: the Z stack is essential for performing the Z correction!
             raise ValueError(
                 "Z stack Directory not found. Please check the number in the processing csv"
             )
@@ -823,7 +963,8 @@ def read_csv_produce_directories(dataEntry, s2pDir, zstackDir, metadataDir):
     if not type(saveDirectory) is str:
         # If the saveDirectory is not a string, saves files created here
         # in a folder called PreProcessedFiles. This exists in the s2pDirectory.
-        # This also means this folder is not created if the saveDirectory is specified.
+        # This also means this folder is not created if the saveDirectory 
+        # is specified.
         saveDirectory = os.path.join(s2pDirectory, "PreprocessedFiles")
     # Creates the folder Preprocessedfiles if it doesn't exist yet
     if not os.path.isdir(saveDirectory):
