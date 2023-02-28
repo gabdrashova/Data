@@ -154,7 +154,7 @@ def detect_photodiode_changes(
     # find thesehold crossings
     uBaselineCond = sigFilt > (mean_waitTime + 1 * std_waitTime)
     uThresholdCond = sigFilt > thresholdU
-    dBaselineCond = sigFilt < (mean_waitTime + 1 * std_waitTime)
+    dBaselineCond = sigFilt > (mean_waitTime + 1 * std_waitTime)
     dThresholdCond = sigFilt > thresholdD
     crossingsU = np.where(
         np.diff(
@@ -602,7 +602,7 @@ def get_piezo_trace_for_plane(
     Returns
     -------
     planePiezo : np.array [miliseconds in one frame, nplanes]
-        Movement of piezo across z-axis for all planes. 
+        Movement of piezo across z-axis for all planes.
         Location in depth (in microns) is for each milisecond within one plane.
 
     """
@@ -620,7 +620,7 @@ def get_piezo_trace_for_plane(
     w /= np.sum(w)
     # Smoothes the piezo trace with the hanning window from above to remove irregularities in the trace.
     piezo = np.convolve(piezo, w, "same")
-    
+
     # Subtracts the minimum value in the piezo trace from the piezo trace to obtain positive values only.
     piezo -= np.min(piezo)
     # Divides the piezo trace by the voltage ratio to convert the voltage values into distance in microns.
@@ -629,12 +629,12 @@ def get_piezo_trace_for_plane(
     traceDuration = int(np.median(np.diff(frameTimes)) * 1000)  # convert to ms
     # Creates an array where the location in depth is for each milisecond within one plane.
     planePiezo = np.zeros((traceDuration, len(selectedPlanes)))
-    
+
     # Runs over the imaging planes and calculates the average depth per frame every 100th frame.
     for i in range(len(selectedPlanes)):
         plane = selectedPlanes[i]
 
-# Below section takes an average of piezo trace for each plane, by sampling every 100th frame.
+        # Below section takes an average of piezo trace for each plane, by sampling every 100th frame.
 
         # Determines the time at which the piezo starts and ends for each plane but ignoring the first frame
         # because the location of the first frame is when the piezo starts moving so it is inaccurate.
@@ -688,9 +688,9 @@ def get_piezo_data(ops):
     Returns
     -------
     planePiezo : np.array [miliseconds in one frame, nplanes]
-        Movement of piezo across z-axis for all planes. 
+        Movement of piezo across z-axis for all planes.
         Location in depth (in microns) is for each milisecond within one plane.
-        
+
 
     """
     # Loads the current experiment for which to get the piezo data.

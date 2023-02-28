@@ -46,8 +46,8 @@ def correct_neuropil(
     N : np.ndarray [t x nROIs]
         Neuropil traces of ROIs.
     numN : int, optional
-        Number of bins used to partition the distribution of neuropil values. 
-        Each bin will be associated with a mean neuropil value and a mean 
+        Number of bins used to partition the distribution of neuropil values.
+        Each bin will be associated with a mean neuropil value and a mean
         signal value. The default is 20.
     minNp : int, optional
         Minimum values of neuropil considered, expressed in percentile.
@@ -57,7 +57,7 @@ def correct_neuropil(
         0 < maxNp < 100, minNp < maxNp. The
         default is 90.
     prctl_F : int, optional
-        Percentile of the measured signal that will be matched to neuropil. 
+        Percentile of the measured signal that will be matched to neuropil.
         The default is 5.
     verbose : boolean, optional
         Feedback on fitting. The default is True.
@@ -67,16 +67,16 @@ def correct_neuropil(
     signal : np.ndarray [t x nROIs]
         Neuropil corrected calcium traces.
     regPars : np.ndarray [2 x nROIs], each row: [intercept, slope]
-        Intercept and slope of linear fits of neuropil (N) to measured calcium 
+        Intercept and slope of linear fits of neuropil (N) to measured calcium
         traces (F)
     F_binValues : np.array [numN, nROIs]
         Low percentile (prctl_F) values for each calcium trace bin. These
         values were used for linear regression.
     N_binValues : np.array [numN, nROIs]
-        Values for each neuropil bin. These values were used for linear 
+        Values for each neuropil bin. These values were used for linear
         regression.
 
-    Based on Matlab function estimateNeuropil (in +preproc) written by Mario 
+    Based on Matlab function estimateNeuropil (in +preproc) written by Mario
     Dipoppa and Sylvia Schroeder
     """
 
@@ -86,26 +86,24 @@ def correct_neuropil(
     regPars = np.ones((2, nROIs)) * np.nan
     signal = np.ones((nt, nROIs)) * np.nan
 
-    
-    # Computes the F0 traces for Calcium traces and Neuropil traces 
+    # Computes the F0 traces for Calcium traces and Neuropil traces
     # respectively.
     # Refer to the function for further details on how this is done.
     F0 = get_F0(F, fs)
     N0 = get_F0(N, fs)
     # Corrects for slow drift by subtracting F0 from F and N traces.
-    Fc = F - F0 
+    Fc = F - F0
     Nc = N - N0
-    
 
     # Determines where the minimum normalised difference between F0 and N0.
-    ti = np.nanargmin((F0 - N0) / N0, 0) 
-    # Calculates the F at the 50th percentile. 
-    lowActivity = np.nanpercentile(F, 50, 0) 
+    ti = np.nanargmin((F0 - N0) / N0, 0)
+    # Calculates the F at the 50th percentile.
+    lowActivity = np.nanpercentile(F, 50, 0)
     for iROI in range(nROIs):
         # TODO: verbose options
         # Adds the value of F0 at which point the difference between F and N
         # baselines is minimal.
-        
+
         Fc[:, iROI] += F0[ti[iROI], iROI]
         Nc[:, iROI] += N0[ti[iROI], iROI]
         # Gets the current F and N trace.
@@ -116,20 +114,20 @@ def correct_neuropil(
         N_prct = np.nanpercentile(iN, np.array([minNp, maxNp]), axis=0)
         # Divides neuropil values into numN groups.
         binSize = (N_prct[1] - N_prct[0]) / numN
-        # Gets neuropil values regularly spaced across range between minNp and 
+        # Gets neuropil values regularly spaced across range between minNp and
         # maxNp.
         N_binValues[:, iROI] = N_prct[0] + (np.arange(0, stop=numN)) * binSize
 
-        # Discretizes values of neuropil between minN and maxN, with numN 
+        # Discretizes values of neuropil between minN and maxN, with numN
         # elements.
-        # N_ind contains values: 0...binSize for N values within minNp and 
+        # N_ind contains values: 0...binSize for N values within minNp and
         # maxNp.
         # Done to determine in which bin each data point belongs to.
         N_ind = np.floor((iN - N_prct[0]) / binSize)
 
-        # Finds the matching (low percentile) value from F trace for each 
+        # Finds the matching (low percentile) value from F trace for each
         # neuropil bin.
-        # This is to determine values of F that are relatively low as these 
+        # This is to determine values of F that are relatively low as these
         # are unlikely to reflect neural spiking.
         for Ni in range(numN):
             tmp = np.ones_like(iF) * np.nan
@@ -139,11 +137,11 @@ def correct_neuropil(
         noNan = np.where(
             ~np.isnan(F_binValues[:, iROI]) & ~np.isnan(N_binValues[:, iROI])
         )[0]
-        
+
         # perform linear regression between neuropil and signal bins under constraint that 0<slope<2
         # res, _ = optimize.curve_fit(_linear, N_binValues[noNan, iROI], F_binValues[noNan, iROI],
         #                             p0=(np.nanmean(F_binValues[:, iROI]), 0), bounds=([-np.inf, 0], [np.inf, 2]))
-        
+
         # Finds analytical solution to determine the correction factor
         # by fitting a robust line to the correlation of low values of F with
         # neuropil values.
@@ -151,10 +149,10 @@ def correct_neuropil(
             N_binValues[noNan, iROI], F_binValues[noNan, iROI], False
         )
         # regPars[:, iROI] = res
-        # Structures the intercept (a) and slope (b) values for each ROi into 
+        # Structures the intercept (a) and slope (b) values for each ROi into
         # an array.
         regPars[:, iROI] = (a, b)
-        
+
         ## avoid over correction
         # b = min(b, 1)
         # Calculates the corrected signal by multiplying the neuropil values by
@@ -169,23 +167,23 @@ def correct_neuropil(
 # TODO
 def correct_zmotion(F, zprofiles, ztrace, ignore_faults=True, metadata={}):
     """
-    Corrects changes in fluorescence due to brain movement along z-axis 
-    (depth). Method is based on algorithm described in Ryan, ..., Lagnado 
+    Corrects changes in fluorescence due to brain movement along z-axis
+    (depth). Method is based on algorithm described in Ryan, ..., Lagnado
     (J Physiol, 2020).
 
     Parameters
     ----------
     F : np.array [t x nROIs]
-        Calcium traces (measured signal) of ROIs from a single(!) plane. 
+        Calcium traces (measured signal) of ROIs from a single(!) plane.
         It is assumed that these are neuropil corrected!
     zprofiles : np.array [slices x nROIs]
-        Fluorescence profiles of ROIs across depth of z-stack. 
+        Fluorescence profiles of ROIs across depth of z-stack.
         These profiles are assumed to be neuropil corrected!
     ztrace : np.array [t]
-        Depth of each frame of the imaged plane. 
+        Depth of each frame of the imaged plane.
         Indices in this array refer to slices in zprofiles.
     ignore_faults: bool, optional
-        Whether to remove the timepoints where imaging took place in a plane 
+        Whether to remove the timepoints where imaging took place in a plane
         that is meaningless to a cell's activity. Default is True.
 
     Returns
@@ -200,7 +198,6 @@ def correct_zmotion(F, zprofiles, ztrace, ignore_faults=True, metadata={}):
     2) Correct calcium traces using correction vector.
     """
 
-    
     # Chooses the depth to which to compare all the ROI depths (this is the
     # median depth across the whole zTrace).
     referenceDepth = int(np.round(np.median(ztrace)))
@@ -211,11 +208,11 @@ def correct_zmotion(F, zprofiles, ztrace, ignore_faults=True, metadata={}):
     # Assigns the correction factor for each frame based on its location in the
     # Z trace.
     correctionMatrix = correctionFactor[ztrace, :]
-    # Applies the Z correction by dividing the frames in the fluorescence 
-    # traces by the correction factor. 
+    # Applies the Z correction by dividing the frames in the fluorescence
+    # traces by the correction factor.
     signal = F / correctionMatrix
-    
-    # Removes the timepoints where imaging took place in a plane that is 
+
+    # Removes the timepoints where imaging took place in a plane that is
     # meaningless to a cell's activity and returns the corrected signal.
     # See function for details.
     if ignore_faults:
@@ -234,7 +231,7 @@ def register_zaxis():
 def get_F0(Fc, fs, prctl_F=8, window_size=60, verbose=True):
     """
     Determines the baseline fluorescence to use for computing deltaF/F.
-   
+
 
     Parameters
     ----------
@@ -247,7 +244,7 @@ def get_F0(Fc, fs, prctl_F=8, window_size=60, verbose=True):
     window_size : int, optional
         The rolling window over which to calculate F0. The default is 60.
     verbose : bool, optional
-        Whether or not to provide detailed processing information. 
+        Whether or not to provide detailed processing information.
         The default is True.
 
     Returns
@@ -292,10 +289,10 @@ def get_F0(Fc, fs, prctl_F=8, window_size=60, verbose=True):
 # TODO: understand why np.fmax is used
 def get_delta_F_over_F(Fc, F0):
     """
-    Calculates delta F over F. Note instead of simply dividing (F-F0) by F0, 
+    Calculates delta F over F. Note instead of simply dividing (F-F0) by F0,
     the mean of F0 is used and only values above 1 are taken. This is to not
     wrongly increase the value of F if F0 is smaller than 1.
-   
+
     Parameters
     ----------
     Fc :np.ndarray [t x nROIs]
@@ -338,7 +335,7 @@ def remove_zcorrected_faults(ztrace, zprofiles, signals, metadata={}):
     zp_focused = zprofiles[min(ztrace) : max(ztrace), :]
     # Normalises the zTrace so that the top imaged plane is the first plane.
     ztrace -= min(ztrace)
-    # Calculates the difference between the z profiles for one plane and the 
+    # Calculates the difference between the z profiles for one plane and the
     # plane before. This gives the change in fluorescence between planes.
     dif = np.diff(zp_focused, 1, axis=0)
     # Gets in which plane the fluorescence changes for each cell (where there
@@ -350,27 +347,27 @@ def remove_zcorrected_faults(ztrace, zprofiles, signals, metadata={}):
     cells = zero_crossings_inds[1]
     # Gets the imaging plane by taking the median plane in the z trace.
     imagingPlane = np.median(ztrace)  # -min(ztrace)
- 
+
     metadata["removedIndex"] = []
-    # For each cell, 
+    # For each cell,
     for i in range(signals.shape[1]):
         # Gets the indices where there are crossings for the specified cell.
         cellInds = np.where(cells == i)[0]
-        # No zero crossings of the derivative means imaging is on a 
+        # No zero crossings of the derivative means imaging is on a
         # monotonous slope.
-        
+
         if len(cellInds) == 0:
             continue
         # Gets the planes where most fluorescence comes from.
         zc = zero_crossing[cellInds]
-        # Calculates the distance of the crossing plane from the median 
+        # Calculates the distance of the crossing plane from the median
         # imaging plane.
         distFromPlane = imagingPlane - zc
-       # If there are many crossings, finds out what is the closest one to
-       # the imaging plane. 
-        planeCrossingInd = np.argmin(abs(distFromPlane))        
+        # If there are many crossings, finds out what is the closest one to
+        # the imaging plane.
+        planeCrossingInd = np.argmin(abs(distFromPlane))
         planeCrossing = zc[planeCrossingInd]
-      
+
         # Removes the signals where there is more than one crossing.
         if len(zc) > 1:
             # The imaging plane has the first crossing. Discards anything
@@ -381,32 +378,31 @@ def remove_zcorrected_faults(ztrace, zprofiles, signals, metadata={}):
                 # after the first crossing.
                 signals[np.where(ztrace > zc[1]), i] = np.nan
             # For all the cases where the crossing closest to the imaging plane
-            # is not the first, all values are discarded where the plane is 
-            #before the crossing.
-            else:                
+            # is not the first, all values are discarded where the plane is
+            # before the crossing.
+            else:
                 signals[
                     np.where(ztrace < zc[planeCrossingInd - 1]), i
                 ] = np.nan
 
-                
         # Checks if differential is positive before crossing.
         # If that's the case we're golden, the problem is if it is negative.
         # Then it's a trough and it depends on what side of the trough we are
-        # imaging.        
-                            
-            # If the first crossing is below the imaging plane, removes the
-            # timepoints after the crossing.
+        # imaging.
+
+        # If the first crossing is below the imaging plane, removes the
+        # timepoints after the crossing.
         if dif[planeCrossing - 1, i] < 0:
             if distFromPlane[planeCrossingInd] < 0:
 
                 removeInd = np.where(ztrace > planeCrossing + 1)[0]
-            else:                
+            else:
                 # In the opposite case, it removes the points from before the
                 # crossing.
                 removeInd = np.where(ztrace < planeCrossing + 1)[0]
-                
+
             signals[removeInd, i] = np.nan
-        # Adds the indices of the removed points to a dictionary.    
+        # Adds the indices of the removed points to a dictionary.
         metadata["removedIndex"].append(np.where(np.isnan(signals))[0])
     return signals
 
@@ -418,30 +414,11 @@ def _linear(x, a, b):
 def zero_signal(F):
     """
 
-   This function adds the value 19520 to all ROIs across time.This value 
-   represents the absolute zero signal and was obtained by averaging the 
-   darkest frame over many imaging sessions. It is important to note 
-   that the absolute zero value is arbitrary and depends on the voltage range 
-   of the PMTs.
-   
-   
-
-   Parameters
-   ----------
-   F : np.ndarray [t x nROIs]
-   Calcium traces (measured signal) of ROIs.
-
-   Returns
-   -------
-   F : np.ndarray [t x nROIs]
-   Calcium traces (measured signal) of ROIs with the addition of the absolute
-   zero signal.
-
-   """
-=======
-    This function adds the value 19520 to all ROIs across time.This value represents the absolute zero signal
-    and was obtained by averaging the darkest frame over many imaging sessions. It is important to note
-    that the absolute zero value is arbitrary and depends on the voltage range of the PMTs.
+    This function adds the value 19520 to all ROIs across time.This value
+    represents the absolute zero signal and was obtained by averaging the
+    darkest frame over many imaging sessions. It is important to note
+    that the absolute zero value is arbitrary and depends on the voltage range
+    of the PMTs.
 
 
 
