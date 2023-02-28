@@ -302,9 +302,6 @@ def _process_s2p_singlePlane(
                 loc="upper left",
             )
 
-            
-=======
-
             ax["zcorr"].plot(Fcz[1:500, i], "k")
             ax["zcorr"].plot(dF[1:500, i], "b--", linewidth=3)
             ax["zcorr"].legend(
