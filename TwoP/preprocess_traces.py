@@ -396,11 +396,6 @@ def remove_zcorrected_faults(ztrace, zprofiles, signals, metadata={}):
                             
             # If the first crossing is below the imaging plane, removes the
             # timepoints after the crossing.
-            if distFromPlane[planeCrossingInd] < 0:                
-=======
-        # Check if differential is positive before crossing
-        # If that's the case we're golden, the problem is if negative
-        # Then it's a trough and if depends on what side of the trough we are
         if dif[planeCrossing - 1, i] < 0:
             if distFromPlane[planeCrossingInd] < 0:
 
