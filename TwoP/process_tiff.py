@@ -30,9 +30,9 @@ def _fill_plane_piezo(stack, piezoNorm, i, spacing=1):
     """
     Slants the Z stack planes according to how slanted the imaged frames are.
     This is done because the frames are acquired using a fast scanning technique
-    (sawtooth scanning) which means that, along the y axis, the Z differs. 
+    (sawtooth scanning) which means that, along the y axis, the Z differs.
     This is different to taking the Z stack which uses normal scanning which
-    means the depth along the Y axis is the same. To make sure the Z stack is 
+    means the depth along the Y axis is the same. To make sure the Z stack is
     aligned in Y to the imaged frames, the function slants the Z stack.
 
     Parameters
@@ -50,21 +50,21 @@ def _fill_plane_piezo(stack, piezoNorm, i, spacing=1):
     """
     # Normalises the piezo trace to the top depth.
     piezoNorm -= piezoNorm[0]
-    # Adds the value of the current Z stack plane (equivalent to 1um/plane). 
-    piezoNorm += i 
+    # Adds the value of the current Z stack plane (equivalent to 1um/plane).
+    piezoNorm += i
 
     # Gets the number of planes and no. of pixels along X and Y of the Z stack.
     planes = stack.shape[0]
     resolutionx = stack.shape[1]
     resolutiony = stack.shape[2]
-    
+
     # Creates a variable that tells the current location in Y (in pixels).
-    currPixelY = 0 
+    currPixelY = 0
     # Creates a variable that tells the current location in Z (in pixels).
-    currDepth = 0 
+    currDepth = 0
     # Will contain the slanted image in the current plane.
-    slantImg = np.zeros(stack.shape[1:]) 
-    # Gets the total amount of pixels in y 
+    slantImg = np.zeros(stack.shape[1:])
+    # Gets the total amount of pixels in y
     # (used to calculate how many pixels per piezo step).
     pixelsPerMoveY = np.ones(len(piezoNorm)) * resolutiony
 
@@ -87,9 +87,11 @@ def _fill_plane_piezo(stack, piezoNorm, i, spacing=1):
         stack,
         fill_value=None,
     )
-    for d in range(len(piezoNorm)): # For each piezo step
-        endPointY = pixelsY[d] # Gets the end point for the current piezo step.
-        depth = piezoNorm[d] # Gets the current depth from the piezo trace.
+    for d in range(len(piezoNorm)):  # For each piezo step
+        endPointY = pixelsY[
+            d
+        ]  # Gets the end point for the current piezo step.
+        depth = piezoNorm[d]  # Gets the current depth from the piezo trace.
 
         # If beyond the depth, takes the final frame.
         if depth > planes - 1:
@@ -98,9 +100,9 @@ def _fill_plane_piezo(stack, piezoNorm, i, spacing=1):
         if depth < 0:
             depth = 0
         # For every pixel within the current piezo step.
-        for yt in np.arange(currPixelY, endPointY): 
+        for yt in np.arange(currPixelY, endPointY):
             # print (depth,yt)
-            # Determines the approximate pixel values along one y line 
+            # Determines the approximate pixel values along one y line
             # given the depth.
             line = interp(
                 (
@@ -112,9 +114,9 @@ def _fill_plane_piezo(stack, piezoNorm, i, spacing=1):
             # Appends the newly created line to the slanted image stack.
             slantImg[yt, 0:resolutionx] = line
         # Updates the current location in y.
-        currPixelY += numPixelsY[d] 
+        currPixelY += numPixelsY[d]
         # Updates the depth to the one in the next piezo step.
-        currDepth += depth 
+        currDepth += depth
     return slantImg
 
 
@@ -148,18 +150,18 @@ def _register_swipe(zstack, start, finish, progress):
         # after it).
         if i == 0:
             stackRange = range(i, i + 2)
-        # For the final plane, the range is 2 (penultimate plane and last 
+        # For the final plane, the range is 2 (penultimate plane and last
         # plane).
         elif i == zstack.shape[0] - 1:
             stackRange = range(i - 1, i + 1)
         else:
-        # For all planes in between the first and the last plane the range is
-        # the plane before, the current plane and the plane after.
+            # For all planes in between the first and the last plane the range is
+            # the plane before, the current plane and the plane after.
             stackRange = range(i - 1, i + 2)
         # print(str(i))
         # Makes a small stack with the planes specified by the range above.
         miniStack = zstack[stackRange]
-        # Registers the planes uisng the frame registration function from 
+        # Registers the planes uisng the frame registration function from
         # suite2p by using the middle plane as a reference.
         res = register_frames(
             miniStack[1, :, :], miniStack[:, :, :].astype(np.int16)
@@ -172,8 +174,8 @@ def _register_swipe(zstack, start, finish, progress):
 def register_zstack_frames(zstack):
     """
     Wrapper-like function. Performs interative local registration through the
-    sub-function _register_swipe. 
-    1. Registers from the mid plane to the top plane 
+    sub-function _register_swipe.
+    1. Registers from the mid plane to the top plane
     (assuming the first plane in the Z stack is the top plane).
     2. Registers from the mid plane to the bottom plane.
     3. Registers from the top to the bottom plane.
@@ -191,23 +193,22 @@ def register_zstack_frames(zstack):
     """
     #### Start from centre take triples and align them
     centreFrame = int(np.floor(zstack.shape[0] / 2))
-    tempStack = np.zeros_like(zstack)
     # Performs registration from mid to top plane.
     zstack = _register_swipe(zstack, centreFrame, 0, -1)
     # Performs registration from mid to bottom plane.
     zstack = _register_swipe(zstack, centreFrame, zstack.shape[0], 1)
     # Performs registration from top to bottom plane.
-    zstack = _register_swipe(zstack, centreFrame, zstack.shape[0], 1)
+    zstack = _register_swipe(zstack, 0, zstack.shape[0], 1)
     return zstack
 
 
 def registerStacktoRef(zstack, refImg, ops=default_ops()):
     """
-    Registers the Z stack to the reference image using the same approach 
+    Registers the Z stack to the reference image using the same approach
     as registering the frames to the reference image.
     All functions come from suite2p, see their docs for further information on
-    the functions.  
-    
+    the functions.
+
     Parameters
     ----------
     zstack : np.ndarray [planes, x, y]
@@ -246,7 +247,7 @@ def registerStacktoRef(zstack, refImg, ops=default_ops()):
     dx = corrRes[1][maxCor]
     dy = corrRes[0][maxCor]
     zstackCorrected = np.zeros_like(zstack)
-    
+
     # Shifts every plane according to the phase corr with the ref image.
     for z in range(zstack.shape[0]):
         frame = zstack[z, :, :]
@@ -254,30 +255,29 @@ def registerStacktoRef(zstack, refImg, ops=default_ops()):
     return zstackCorrected
 
 
-
 def register_zstack(tiff_path, spacing=1, piezo=None, target_image=None):
     """
     Loads tiff file containing imaged z-stack, aligns all frames to each other,
-    averages across repetitions, and (if piezo not None) reslices the 3D 
-    z-stack so that slant/orientation of the new slices matches the slant of 
+    averages across repetitions, and (if piezo not None) reslices the 3D
+    z-stack so that slant/orientation of the new slices matches the slant of
     the frames imaged during experiments (slant given by piezo trace).
 
     Parameters
     ----------
     tiff_path : String
-        Path to tiff file containing z-stack. Note the assumed format of the 
+        Path to tiff file containing z-stack. Note the assumed format of the
         z stack is [planes,frames,X,Y] with frames referring to the snapshots
         taken at one plane.
     spacing: int
         distance between planes of the Z stack (in microns).
     piezo : np.array [t]
         Movement of piezo across z-axis for one plane. Unit: microns. Raw taken
-        from niDaq. [Note: need to add more input arguments depending on how 
-        registration works. Piezo movement might need to provided in units of 
-        z-stack slices if tiff header does not contain information about depth 
+        from niDaq. [Note: need to add more input arguments depending on how
+        registration works. Piezo movement might need to provided in units of
+        z-stack slices if tiff header does not contain information about depth
         in microns]
     target_image : np.array [x x y]
-        Image used by suite2p to align frames to. Is needed to align z-stack 
+        Image used by suite2p to align frames to. Is needed to align z-stack
         to this image and then apply masks at correct positions.
 
     Returns
@@ -287,15 +287,14 @@ def register_zstack(tiff_path, spacing=1, piezo=None, target_image=None):
     """
     # Loads Z stack.
     image = skimage.io.imread(tiff_path)
-    
+
     # Gets the number of planes and no. of pixels along X and Y.
     planes = image.shape[0]
     resolutionx = image.shape[2]
     resolutiony = image.shape[3]
     # Prepares an array where the processed Z stack planes will be placed.
     zstack = np.zeros((planes, resolutionx, resolutiony))
-    
-    
+
     for i in range(planes):
         # sr = StackReg(StackReg.TRANSLATION)
         # reg_arrays = sr.register_transform_stack(image[i,:,:,:], reference=reference)
@@ -306,11 +305,11 @@ def register_zstack(tiff_path, spacing=1, piezo=None, target_image=None):
         )
         # zstack[i,:,:] = np.mean(reg_arrays, axis=0)
         # Calculates the mean of those 10 registered frames per plane.
-        zstack[i, :, :] = np.mean(res[0], axis=0)       
+        zstack[i, :, :] = np.mean(res[0], axis=0)
     # Performs local registration of the Z stack using the neighboring planes
-    # as reference.       
+    # as reference.
     zstack = register_zstack_frames(zstack)
-    
+
     # Unless there is no piezo trace, the Z stack is slanted according to the
     # piezo movement. The frames are acquired using fast imaging
     # (sawtooth) which means that along the y axis the Z differs. This is
@@ -318,18 +317,18 @@ def register_zstack(tiff_path, spacing=1, piezo=None, target_image=None):
     if not (piezo is None):
         # Normalises the piezo depending on the spacing between planes.
         piezoNorm = piezo / spacing
-        
+
         depthDiff = np.diff(piezo)
         totalDepthTravelled = sum(depthDiff)
         proportionTavelled = depthDiff / totalDepthTravelled
-        
+
         zstackTmp = np.zeros(zstack.shape)
-        
+
         # Changes the slant of each plane of the Z stack using the function
         # _fill_plane_piezo. See function for details.
         for p in range(planes):
             # print(p)
-            
+
             zstackTmp[p, :, :] = _fill_plane_piezo(zstack, piezoNorm, p)
         zstack = zstackTmp
     # if (save):
@@ -377,7 +376,7 @@ def extract_zprofiles(
     extraction_path: str
         The current directory path.
     zstack : np.array [x x y x z]
-        Registered z-stack where slices are oriented the same way as imaged 
+        Registered z-stack where slices are oriented the same way as imaged
         planes (output of register_zstack).
     neuropil_correction : np.array [nROIs]
         Correction factors determined by preprocess_traces.correct_neuropil.
@@ -387,9 +386,9 @@ def extract_zprofiles(
     neuropil_masks : np.array [x x y x nROIs]
         (this assumes that suite2p actually uses masks for neuropil)
         Pixel masks of ROI's neuropil in space (x- and y-axis).
-    smoothing_factor: 
-    
-    
+    smoothing_factor:
+
+
 
     Returns
     -------
@@ -421,7 +420,7 @@ def extract_zprofiles(
     ops = np.load(
         os.path.join(extraction_path, "ops.npy"), allow_pickle=True
     ).item()
-    isCell = np.load(os.path.join(extraction_path, "iscell.npy")).astype(bool)    
+    isCell = np.load(os.path.join(extraction_path, "iscell.npy")).astype(bool)
     ### Step 1
     #
     # X = ops['Lx']
@@ -429,31 +428,30 @@ def extract_zprofiles(
     # if (target_image is None):
     #     refImg = ops['refImg']
     # else:
-        
+
     # Gets the resolution in X and Y of the z stack.
     X = zstack.shape[1]
     Y = zstack.shape[2]
-    
+
     # zstack_reg = registerStacktoRef(zstack,refImg,ops)
-    
+
     if (ROI_masks is None) and (neuropil_masks is None):
         # Suite2P function: creates cell and neuropil masks.
-        rois, npils = create_masks(stat, Y, X, ops) 
-        
-    # Gets the "fluorescence traces" for each ROI within the Z stack. Treats 
+        rois, npils = create_masks(stat, Y, X, ops)
+
+    # Gets the "fluorescence traces" for each ROI within the Z stack. Treats
     # each plane in the Z stack like a frame in time; this is the same function
-    # that is used to extract the F and N traces. 
+    # that is used to extract the F and N traces.
     # Aditionally extracts the neuropil traces.
     zProfile, Fneu = extract_traces(zstack, rois, npils, 1)
-    
+
     # Adds the zero signal value. Refer to function for further details.
     zProfile = zero_signal(zProfile)
     Fneu = zero_signal(Fneu)
-    
-    # Only takes the ROIs which are considered cells. 
+
+    # Only takes the ROIs which are considered cells.
     zProfile = zProfile[isCell[:, 0], :].T
     Fneu = Fneu[isCell[:, 0], :].T
-    
 
     zprofileRaw = zProfile.T.copy()
     # Performs neuropil correction of the zProfile.
@@ -462,10 +460,10 @@ def extract_zprofiles(
         # zProfile = np.fmax(zProfile,np.ones(zProfile.shape)*Fbl.reshape(-1,1))
         # zProfile = zProfile.T
     # zProfileC = np.zeros(zProfile.shape)
-    
+
     # Smoothes the Z profile using a gaussian filter.
     if not (smooting_factor is None):
-        
+
         zProfile = sp.ndimage.gaussian_filter1d(
             zProfile, smooting_factor, axis=0
         )
