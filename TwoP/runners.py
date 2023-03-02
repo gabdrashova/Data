@@ -206,6 +206,7 @@ def _process_s2p_singlePlane(
         # If no Z correction is performed (for example if no Z stack was given)
         # only the uncorrected delta F over F is considered.
         Fcz = dF
+        zcorr = np.nan
     # Places all the results in a dictionary (dF/F, Z corrected dF/F,
     # z profiles, z traces and the cell locations in X, Y and Z).
     results = {
@@ -213,6 +214,7 @@ def _process_s2p_singlePlane(
         "dff_zcorr": Fcz,
         "zProfiles": zprofiles,
         "zTrace": zTrace,
+        "zCorr_stack": zcorr,
         "locs": cellLocs,
     }
 
@@ -434,12 +436,14 @@ def process_s2p_directory(
     signalLocs = []
     zTraces = []
     zProfiles = []
+    zCorrs = []
     # Appends lists with the results for all the planes.
     for i in range(len(results)):
         signalList.append(results[i]["dff_zcorr"])
         signalLocs.append(results[i]["locs"])
         zTraces.append(results[i]["zTrace"])
         zProfiles.append(results[i]["zProfiles"])
+        zCorrs.append(results[i]["zCorr_stack"])
         # Places the signal into an array.
         res = signalList[i]
         # Specifies which plane each ROI belongs to.
@@ -465,6 +469,7 @@ def process_s2p_directory(
     locs = np.vstack(signalLocs)
     zProfile = np.hstack(zProfiles)
     zTrace = np.vstack(zTraces)
+    zCorrs = np.vstack(zCorrs)
 
     # Saves the results as individual npy files.
     np.save(os.path.join(saveDirectory, "calcium.dff.npy"), signals)
@@ -472,6 +477,7 @@ def process_s2p_directory(
     np.save(os.path.join(saveDirectory, "rois.xyz.npy"), locs)
     np.save(os.path.join(saveDirectory, "rois.zprofiles.npy"), zProfile)
     np.save(os.path.join(saveDirectory, "planes.zTrace"), zTrace)
+    np.save(os.path.join(saveDirectory, "planes.zcorrStack"), zCorrs)
 
 
 # bonsai + arduino
@@ -532,6 +538,13 @@ def process_metadata_directory(
         #     continue
 
         # frame_in_file = fpf[int(expDir) - 1]
+
+        if dInd >= len(fpf):
+            warnings.warn(
+                "More metadata directories than frames per folder in ops. skipping the rest"
+            )
+            continue
+
         frame_in_file = fpf[dInd]
 
         try:
