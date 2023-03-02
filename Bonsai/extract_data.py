@@ -157,16 +157,10 @@ def detect_photodiode_changes(
     dBaselineCond = sigFilt > (mean_waitTime + 1 * std_waitTime)
     dThresholdCond = sigFilt > thresholdD
     crossingsU = np.where(
-        np.diff(
-            np.array(uThresholdCond & uBaselineCond).astype(int), prepend=False
-        )
-        > 0
+        np.diff(np.array(uThresholdCond).astype(int), prepend=False) > 0
     )[0]
     crossingsD = np.where(
-        np.diff(
-            np.array(dThresholdCond & dBaselineCond).astype(int), prepend=False
-        )
-        < 0
+        np.diff(np.array(dThresholdCond).astype(int), prepend=False) < 0
     )[0]
     crossingsU = np.delete(crossingsU, np.where(crossingsU < waitTime)[0])
     crossingsD = np.delete(crossingsD, np.where(crossingsD < waitTime)[0])
