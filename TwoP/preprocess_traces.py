@@ -264,20 +264,16 @@ def get_F0(Fc, fs, prctl_F=8, window_size=60, verbose=True):
         Fc[Fc.shape[0] - int(window_size / 2) : -1, :], 0
     )
 
-    pad_s = np.tile(constant_values_s, (int(window_size / 2), 1))
-    pad_e = np.tile(constant_values_e, (int(window_size / 2), 1))
+    pad_s = np.tile(constant_values_s, (window_size - 1, 1))
+    pad_e = np.tile(constant_values_e, (window_size - 1, 1))
     padded = np.vstack((pad_s, Fc, pad_e))
 
     Fc_pd = pd.DataFrame(padded)
 
     # Calculate F0 by checking the percentile specified from the rolling window.
-    F0 = np.array(
-        Fc_pd.rolling(window_size).quantile(
-            prctl_F * 0.01, interpolation="midpoint"
-        )
-    )
+    F0 = np.array(Fc_pd.rolling(window_size).quantile(prctl_F * 0.01))
     # Removes the padded timepoints at the beginning.
-    F0 = F0[int(window_size / 2) : -int(window_size / 2)]
+    F0 = F0[window_size - 1 : -(window_size - 1)]
     # for t in range(0, Fc.shape[0]):
     #     rng = np.arange(t, np.min([len(Fc), t + window_size]))
     #     F0t = np.nanpercentile(Fc[rng, :], prctl_F, 0)
