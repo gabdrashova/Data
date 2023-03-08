@@ -259,9 +259,9 @@ def get_F0(Fc, fs, prctl_F=8, window_size=60, verbose=True):
     F0 = np.zeros_like(Fc)
     # Converts Fc into a pandas array and pads the array using the window size
     # as a pad width.
-    constant_values_s = np.nanmedian(Fc[0 : int(window_size / 2), :], 0)
+    constant_values_s = np.nanmedian(Fc[0 : int(window_size - 1), :], 0)
     constant_values_e = np.nanmedian(
-        Fc[Fc.shape[0] - int(window_size / 2) : -1, :], 0
+        Fc[Fc.shape[0] - int(window_size - 1) : -1, :], 0
     )
 
     pad_s = np.tile(constant_values_s, (window_size - 1, 1))
