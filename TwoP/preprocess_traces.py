@@ -32,6 +32,8 @@ def correct_neuropil(
     minNp=10,
     maxNp=90,
     prctl_F=5,
+    prctl_F0=5,
+    window_F0=60,
     verbose=True,
 ):
     """
@@ -59,6 +61,12 @@ def correct_neuropil(
     prctl_F : int, optional
         Percentile of the measured signal that will be matched to neuropil.
         The default is 5.
+    prctl_F0 : int, optional
+        Percentile of the measured signal that will be taken as F0.
+        The default is 8
+    window_F0 : int, optional
+        The window size for the calculation of F0 for both signal and neuropil.
+        The default is 60.
     verbose : boolean, optional
         Feedback on fitting. The default is True.
 

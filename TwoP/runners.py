@@ -131,7 +131,9 @@ def _process_s2p_singlePlane(
     # were used to determine the correction factor (intercept and slope of
     # linear fits, F traces bin values, N traces bin values). Refer to function
     # for further details.
-    Fc, regPars, F_binValues, N_binValues = correct_neuropil(F, N, fs)
+    Fc, regPars, F_binValues, N_binValues = correct_neuropil(
+        F, N, fs, prctl_F0=pops["f0_percentile"], window_F0=pops["f0_window"]
+    )
     # Calculates the baseline fluorescence F0 used to calculate delta F over F.
     F0 = get_F0(
         Fc, fs, prctl_F=pops["f0_percentile"], window_size=pops["f0_window"]
