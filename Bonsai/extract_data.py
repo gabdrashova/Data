@@ -6,10 +6,12 @@ import re
 from numba import jit, cuda
 import numba
 import pandas as pd
+import scipy as sp
 from sklearn import linear_model
 from sklearn.metrics import mean_squared_error
 import os
 from Data.TwoP.general import *
+
 
 """Pre-process data recorded with Bonsai."""
 # -*- coding: utf-8 -*-
@@ -140,6 +142,7 @@ def detect_photodiode_changes(
     # sigFilt = sp.signal.medfilt(sigFilt,kernel)
     sigFilt = np.convolve(sigFilt[:, 0], w, mode="same")
     sigFilt_raw = sigFilt.copy()
+    sigFilt_diff = np.diff(sigFilt)
 
     maxSig = np.max(sigFilt)
     minSig = np.min(sigFilt)
@@ -165,6 +168,27 @@ def detect_photodiode_changes(
     crossingsU = np.delete(crossingsU, np.where(crossingsU < waitTime)[0])
     crossingsD = np.delete(crossingsD, np.where(crossingsD < waitTime)[0])
     crossings = np.sort(np.unique(np.hstack((crossingsU, crossingsD))))
+
+    # for the first crosssing might be an issue detecting change if the
+    # entire baseline is over threshold. look for the first that is over it
+    # or under it, and add them if they appear before the first detected change
+    changeInd = np.where(sigFilt > mean_waitTime + std_waitTime)[0]
+    changeInd = changeInd[changeInd >= waitTime]
+    if (
+        (len(changeInd) > 0)
+        and (changeInd[0] < crossings[0])
+        and (crossingsD[0] < crossingsU[0])
+    ):
+        crossings = np.append(changeInd[0], crossings)
+
+    changeInd = np.where(sigFilt < mean_waitTime - std_waitTime)[0]
+    changeInd = changeInd[changeInd >= waitTime]
+    if (
+        (len(changeInd) > 0)
+        and (changeInd[0] < crossings[0])
+        and (crossingsD[0] > crossingsU[0])
+    ):
+        crossings = np.append(changeInd[0], crossings)
 
     if plot:
         f, ax = plt.subplots(1, 1, sharex=True)

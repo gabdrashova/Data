@@ -263,31 +263,17 @@ def get_F0(Fc, fs, prctl_F=8, window_size=60, verbose=True):
     """
     # Translates the window size from seconds into frames.
     window_size = int(round(fs * window_size))
+
     # Creates an array with the shape of Fc where the F0 values will be placed.
     F0 = np.zeros_like(Fc)
-    # Converts Fc into a pandas array and pads the array using the window size
-    # as a pad width.
-    constant_values_s = np.nanmedian(Fc[0 : int(window_size - 1), :], 0)
-    constant_values_e = np.nanmedian(
-        Fc[Fc.shape[0] - int(window_size - 1) : -1, :], 0
-    )
 
-    pad_s = np.tile(constant_values_s, (window_size - 1, 1))
-    pad_e = np.tile(constant_values_e, (window_size - 1, 1))
-    padded = np.vstack((pad_s, Fc, pad_e))
-
-    Fc_pd = pd.DataFrame(padded)
+    Fc_pd = pd.DataFrame(Fc)
 
     # Calculate F0 by checking the percentile specified from the rolling window.
-    F0 = np.array(Fc_pd.rolling(window_size).quantile(prctl_F * 0.01))
-    # Removes the padded timepoints at the beginning.
-    F0 = F0[window_size - 1 : -(window_size - 1)]
-    # for t in range(0, Fc.shape[0]):
-    #     rng = np.arange(t, np.min([len(Fc), t + window_size]))
-    #     F0t = np.nanpercentile(Fc[rng, :], prctl_F, 0)
-    #     # F0[t, :] = np.tile(
-    #     #     F0t, (Fc[rng, :].shape[0], 1)
-    #     F0[t, :] = F0t
+    F0 = np.array(
+        Fc_pd.rolling(window_size, min_periods=1).quantile(prctl_F * 0.01)
+    )
+
     return F0
 
 
