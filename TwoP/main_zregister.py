@@ -8,6 +8,7 @@ from zregister_function import *
 from registration_defs import *
 from joblib import Parallel, delayed
 from runners import run_single_registration
+from zregister_function import *
 
 #
 #

@@ -271,7 +271,9 @@ def get_F0(Fc, fs, prctl_F=8, window_size=60, verbose=True):
 
     # Calculate F0 by checking the percentile specified from the rolling window.
     F0 = np.array(
-        Fc_pd.rolling(window_size, min_periods=1).quantile(prctl_F * 0.01)
+        Fc_pd.rolling(window_size, min_periods=1, center=True).quantile(
+            prctl_F * 0.01
+        )
     )
 
     return F0
