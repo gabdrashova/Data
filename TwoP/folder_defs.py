@@ -90,7 +90,7 @@ def create_processing_ops():
     """
     pops = {
         "debug": True,
-        "plot": False,
+        "plot": True,
         "f0_percentile": 8,
         "f0_window": 300,
         "zcorrect_mode": "Stack",

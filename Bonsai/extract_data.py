@@ -281,7 +281,7 @@ def detect_wheel_move(
     risingEdgeA = risingEdgeA[moveA[risingEdgeA] == 1]
     risingEdgeA_B = moveB[risingEdgeA]
     counterA[risingEdgeA[risingEdgeA_B == 0]] = 1
-    counterA[risingEdgeA[risingEdgeA_B == 1]] = -1
+    # counterA[risingEdgeA[risingEdgeA_B == 1]] = -1
 
     # Detects B move.
     risingEdgeB = np.where(np.diff(moveB > 0, prepend=True))[
@@ -291,7 +291,7 @@ def detect_wheel_move(
     risingEdgeB = risingEdgeB[moveB[risingEdgeB] == 1]
     risingEdgeB_A = moveB[risingEdgeB]
     counterA[risingEdgeB[risingEdgeB_A == 0]] = -1
-    counterA[risingEdgeB[risingEdgeB_A == 1]] = 1
+    # counterA[risingEdgeB[risingEdgeB_A == 1]] = 1
     # Gets how much one move means in distance travelled.
     dist_per_move = total_track / rev_res
     # Gets th distance throughout the whole experiment.
