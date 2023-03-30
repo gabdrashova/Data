@@ -33,7 +33,7 @@ def correct_neuropil(
     maxNp=90,
     prctl_F=5,
     prctl_F0=5,
-    window_F0=60,
+    Npil_window_F0=60,
     verbose=True,
 ):
     """
@@ -97,8 +97,8 @@ def correct_neuropil(
     # Computes the F0 traces for Calcium traces and Neuropil traces
     # respectively.
     # Refer to the function for further details on how this is done.
-    F0 = get_F0(F, fs)
-    N0 = get_F0(N, fs)
+    F0 = get_F0(F, fs, Npil_window_F0)
+    N0 = get_F0(N, fs, Npil_window_F0)
     # Corrects for slow drift by subtracting F0 from F and N traces.
     Fc = F - F0
     Nc = N - N0
@@ -112,8 +112,8 @@ def correct_neuropil(
         # Adds the value of F0 at which point the difference between F and N
         # baselines is minimal.
 
-        Fc[:, iROI] += F0[ti[iROI], iROI]
-        Nc[:, iROI] += N0[ti[iROI], iROI]
+        # Fc[:, iROI] += F0[ti[iROI], iROI]
+        # Nc[:, iROI] += N0[ti[iROI], iROI]
         # Gets the current F and N trace.
         iN = Nc[:, iROI]
         iF = Fc[:, iROI]
@@ -156,6 +156,9 @@ def correct_neuropil(
         a, b, mse = linearAnalyticalSolution(
             N_binValues[noNan, iROI], F_binValues[noNan, iROI], False
         )
+        
+        b = min(b, 2)
+        b = max(b, 0)
         # regPars[:, iROI] = res
         # Structures the intercept (a) and slope (b) values for each ROi into
         # an array.
@@ -165,7 +168,7 @@ def correct_neuropil(
         # b = min(b, 1)
         # Calculates the corrected signal by multiplying the neuropil values by
         # the slope of the linear fit and subtracting this from F.
-        corrected_sig = iF - b * iN
+        corrected_sig = iF - (b * iN + a) + F0[:, iROI]
 
         # Gets the neuropil corrected signal for all ROIs.
         signal[:, iROI] = corrected_sig.copy()
