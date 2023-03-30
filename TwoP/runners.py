@@ -132,7 +132,7 @@ def _process_s2p_singlePlane(
     # linear fits, F traces bin values, N traces bin values). Refer to function
     # for further details.
     Fc, regPars, F_binValues, N_binValues = correct_neuropil(
-        F, N, fs, prctl_F0=pops["f0_percentile"], window_F0=pops["f0_window"]
+        F, N, fs, prctl_F0=pops["f0_percentile"], Npil_window_F0=pops["Npil_f0_window"]
     )
     # Calculates the baseline fluorescence F0 used to calculate delta F over F.
     F0 = get_F0(
@@ -246,9 +246,9 @@ def _process_s2p_singlePlane(
                 bbox_to_anchor=(1.01, 1),
                 loc="upper left",
             )
-
-            ax["zcorr"].plot(Fcz[:, i], "k")
-            ax["zcorr"].plot(dF[:, i], "b--", linewidth=3)
+            
+            ax["zcorr"].plot(dF[:, i], "b", linewidth=3)
+            ax["zcorr"].plot(Fcz[:, i], "k", alpha = 0.5)
             ax["zcorr"].legend(
                 ["dF/F", "dF/F z-zcorrected"],
                 bbox_to_anchor=(1.01, 1),

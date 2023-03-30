@@ -93,6 +93,7 @@ def create_processing_ops():
         "plot": True,
         "f0_percentile": 8,
         "f0_window": 300,
+        "Npil_f0_window": 60,
         "zcorrect_mode": "Stack",
         "remove_z_extremes": True,
     }
