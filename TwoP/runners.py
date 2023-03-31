@@ -26,7 +26,6 @@ from Data.Bonsai.extract_data import *
 from Data.TwoP.general import *
 from Data.TwoP.folder_defs import create_processing_ops
 from registration_defs import *
-from zregister_function import *
 
 
 def _process_s2p_singlePlane(
@@ -1167,21 +1166,3 @@ def read_directory_dictionary(dataEntry, s2pDirectory):
         dataPaths.append(os.path.join(s2pDirectory, str(e)))
 
     return dataPaths
-
-
-def run_single_registration(dataEntry):
-    """
-    This is a function meant to be used in parallel processing that runs the registration function on a single data entry
-
-    Parameters
-    ----------
-    dataEntry : a data entry given from a database
-
-    Returns
-    -------
-    None.
-
-    """
-    filePath = read_directory_dictionary(dataEntry, s2pDir)
-    ops = create_ops_boutton_registration(filePath)
-    z_register_one_file(ops)

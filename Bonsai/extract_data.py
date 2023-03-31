@@ -292,7 +292,9 @@ def detect_wheel_move(
     risingEdgeB_A = moveB[risingEdgeB]
     counterA[risingEdgeB[risingEdgeB_A == 0]] = -1
     # counterA[risingEdgeB[risingEdgeB_A == 1]] = 1
+
     # Gets how much one move means in distance travelled.
+
     dist_per_move = total_track / rev_res
     # Gets th distance throughout the whole experiment.
     instDist = counterA * dist_per_move
