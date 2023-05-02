@@ -9,17 +9,7 @@ Created on Tue May  2 11:45:03 2023
 
 import numpy as np
 import pandas as pd
-import seaborn as sns
-import os
-import scipy
-import matplotlib.pyplot as plt
-import Analysis_pipeline.plotting_functions as plotfun
-import Analysis_pipeline.analysis_functions as afun
-import Analysis_pipeline.behaviour_analysis_functions as bfun
 import math
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
 
 def get_pupil_area(csv_path, save_path, threshold = 0.9):
     """
