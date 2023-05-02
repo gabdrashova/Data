@@ -21,19 +21,6 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-
-#%%testing function
-
-Drive = "Z"
-Subfolder = "Suite2Pprocessedfiles" 
-animal = "Ladon"
-date = "2023-04-04"
-experiment = 2
-video_number = 0
-network = "DLC_resnet101_FaceNov22shuffle1_99000"
-csv_path = r""+Drive+":\\Suite2Pprocessedfiles\\"+ animal+"\\"+date+"\\DLC\\Video"+str(video_number)+network+".csv"
-
-#%%
 def get_pupil_area(csv_path, save_path):
     """
     Calculates the area of the pupil in each frame of one face video. 
@@ -122,7 +109,3 @@ def get_pupil_area(csv_path, save_path):
     
     return Area
 
-#%%
-npy_path = ""+Drive+":\\Suite2Pprocessedfiles\\"+ animal+"\\"+date+"\\DLC\\Video"+str(video_number)+"pupil_area.npy"
-Atest = get_pupil_area(csv_path)
-np.save(npy_path, Atest)
