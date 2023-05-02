@@ -21,7 +21,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-def get_pupil_area(csv_path, save_path):
+def get_pupil_area(csv_path, save_path, threshold = 0.9):
     """
     Calculates the area of the pupil in each frame of one face video. 
     Based on coordinates given by DeepLabCut.
@@ -35,6 +35,9 @@ def get_pupil_area(csv_path, save_path):
     ----------
     csv_path : str
         The path to the csv file for the video.
+    
+    threshold : float
+        The threshold for the confidence level.
 
     Returns
     -------
@@ -66,8 +69,8 @@ def get_pupil_area(csv_path, save_path):
     # Gets confidence level to exclude points where network isn't confident of label position.
     confidence_top = df.loc[:,['top_conf']]
     confidence_bottom = df.loc[:,['bottom_conf']]
-    exclude_vertical = np.where((np.array(confidence_bottom).astype(float)<0.9
-                        ) | (np.array(confidence_top).astype(float)<0.9))[0]
+    exclude_vertical = np.where((np.array(confidence_bottom).astype(float)<threshold
+                        ) | (np.array(confidence_top).astype(float)<threshold))[0]
     
     # Calculates the distance between the top and bottom pupil labels using the x and y coordinates.
     distance_all_vertical = np.zeros(df.shape[0])
@@ -89,8 +92,8 @@ def get_pupil_area(csv_path, save_path):
     # Gets confidence level to exclude points where network isn't confident of label position.
     confidence_left = df.loc[:,['left_conf']]
     confidence_right = df.loc[:,['right_conf']]
-    exclude_horizontal = np.where((np.array(confidence_left).astype(float)<0.9
-                        ) | (np.array(confidence_right).astype(float)<0.9))[0]
+    exclude_horizontal = np.where((np.array(confidence_left).astype(float)<threshold
+                        ) | (np.array(confidence_right).astype(float)<threshold))[0]
     
     for n in range(df.shape[0]):
         distance_horizontal = math.sqrt((float(x_horizontal.iloc[n,0]) -
