@@ -131,7 +131,11 @@ def _process_s2p_singlePlane(
     # linear fits, F traces bin values, N traces bin values). Refer to function
     # for further details.
     Fc, regPars, F_binValues, N_binValues = correct_neuropil(
-        F, N, fs, prctl_F0=pops["f0_percentile"], Npil_window_F0=pops["Npil_f0_window"]
+        F,
+        N,
+        fs,
+        prctl_F0=pops["f0_percentile"],
+        Npil_window_F0=pops["Npil_f0_window"],
     )
     # Calculates the baseline fluorescence F0 used to calculate delta F over F.
     F0 = get_F0(
@@ -195,7 +199,7 @@ def _process_s2p_singlePlane(
             Fcz = correct_zmotion(
                 dF,
                 zprofiles,
-                zTrace,
+                zTrace.copy(),
                 ignore_faults=pops["remove_z_extremes"],
                 metadata=pops,
             )
@@ -245,9 +249,9 @@ def _process_s2p_singlePlane(
                 bbox_to_anchor=(1.01, 1),
                 loc="upper left",
             )
-            
+
             ax["zcorr"].plot(dF[:, i], "b", linewidth=3)
-            ax["zcorr"].plot(Fcz[:, i], "k", alpha = 0.5)
+            ax["zcorr"].plot(Fcz[:, i], "k", alpha=0.5)
             ax["zcorr"].legend(
                 ["dF/F", "dF/F z-zcorrected"],
                 bbox_to_anchor=(1.01, 1),
@@ -484,28 +488,28 @@ def process_s2p_directory(
 
 
 # bonsai + arduino
-#TODO: comment
+# TODO: comment
 def process_metadata_directory(
     bonsai_dir, ops, pops=create_processing_ops, saveDirectory=None
 ):
     """
-    
+
     Processes all the metadata obtained. Assumes the metadata was recorded with
     two separated devices (in our case a niDaq and an Arduino). The niDaq was
-    used to record the photodiode changes,the frameclock, pockels, piezo 
+    used to record the photodiode changes,the frameclock, pockels, piezo
     movement, lick detection (if a reward experiment was performed) and a sync
     signal (to be able to synchronise it to the other device). The Arduino was
     used to record the wheel movement, the camera frame times and a syn signal
     to be able to synchronise with the niDaq time.
-    
+
     The metadata processed and/or reorganised here includes:
     - the times of frames, wheel movement and camera frames
     - sparse noise metadata: start + end times and maps
     - retinal classification metadata: start + end times and stim details
-    - circles metadata: start + end times and stim details 
+    - circles metadata: start + end times and stim details
     - gratings metadata: start + end times and stim details
     - velocity of the wheel (= mouse running velocity)
-    
+
     Please have a look at the Bonsai files for the specific details for each
     experiment type.
 
@@ -536,11 +540,10 @@ def process_metadata_directory(
 
     """
 
-
     if saveDirectory is None:
         saveDirectory = os.path.join(suite2pDirectory, "ProcessedData")
     # metadataDirectory_dirList = glob.glob(os.path.join(metadataDirectory,'*'))
-    
+
     metadataDirectory_dirList = ops["data_path"]
 
     # Gets the length of each experiment in frames.
@@ -550,18 +553,18 @@ def process_metadata_directory(
     lastFrame = 0
 
     # Prepares the lists of outputs.
-    
+
     # Recordings times, rotary encoder times, camera times.
     frameTimes = []
     wheelTimes = []
     faceTimes = []
     bodyTimes = []
-    
+
     # The velocity given by the rotary encoder information.
     velocity = []
 
     # The sparse noise start + end times and the RF maps.
-    
+
     sparseSt = []
     sparseEt = []
     sparseMaps = []
@@ -588,7 +591,6 @@ def process_metadata_directory(
     circleDiameter = []
     circleWhite = []
     circleDuration = []
-
 
     for dInd, di in enumerate(metadataDirectory_dirList):
         if len(os.listdir(di)) == 0:
@@ -626,7 +628,7 @@ def process_metadata_directory(
             frameclock = nidaq[:, chans == "frameclock"]
             # Assigns a time in ms to a frame time (see function for details).
             frames = assign_frame_time(frameclock, plot=pops["plot"])
-            #TODO: run the 5 lines below in debug mode.
+            # TODO: run the 5 lines below in debug mode.
             frameDiffMedian = np.median(np.diff(frames))
             # Take only first frames of each go.
             firstFrames = frames[::planes]
@@ -640,8 +642,8 @@ def process_metadata_directory(
             continue
         # Adds the frame times to the frameTimes list.
         frameTimes.append(imagedFrames + lastFrame)
-        
-        # Gets the sparse noise file snf the props file (with the experimental 
+
+        # Gets the sparse noise file snf the props file (with the experimental
         # details) for mapping RFs.
         sparseFile = glob.glob(os.path.join(di, "SparseNoise*"))
         propsFile = glob.glob(os.path.join(di, "props*.csv"))
@@ -684,7 +686,7 @@ def process_metadata_directory(
                     frameChanges[1::],
                     frameChanges[-1] + (frameChanges[14] - frameChanges[13]),
                 )
-                # Gets the stimulus types (assumes 1st stim is On, 2nd off, etc). 
+                # Gets the stimulus types (assumes 1st stim is On, 2nd off, etc).
                 retinal_stimType = np.empty(
                     (len(frameChanges), 1), dtype=object
                 )
@@ -715,20 +717,20 @@ def process_metadata_directory(
                 retinal_stimType[9::13] = "Off"
                 retinal_stimType[10::13] = "Green"
                 retinal_stimType[11::13] = "Off"
-                
+
                 # Adds the data from above to the respective lists.
                 retinalSt.append(frameChanges.reshape(-1, 1).copy())
                 retinalEt.append(retinal_et.reshape(-1, 1).copy())
                 retinalStim.append(retinal_stimType.copy())
-          
+
             # Gets the circles metadata.
-            #TODO: run this in debug mode to see what exact data it gets.
+            # TODO: run this in debug mode to see what exact data it gets.
             if len(propTitles) >= 3:
                 if propTitles[2] == "Diameter":
-                    # Gets the identity of the stimuli (see function for 
+                    # Gets the identity of the stimuli (see function for
                     # further details).
                     stimProps = get_stimulus_info(di)
-                    
+
                     # Calculates the end of the final frame.
                     circle_et = np.append(
                         frameChanges[1::],
@@ -740,7 +742,7 @@ def process_metadata_directory(
                     circleEt.append(circle_et.reshape(-1, 1).copy())
 
                     # Adds the data from the stimProps dictionary to the respective
-                    # lists. 
+                    # lists.
                     circleX.append(
                         stimProps.X.to_numpy()
                         .reshape(-1, 1)
@@ -777,14 +779,14 @@ def process_metadata_directory(
                     )
 
             if propTitles[0] == "Ori":
-                # Gets the identity of the stimuli (see function for 
+                # Gets the identity of the stimuli (see function for
                 # further details).
                 stimProps = get_stimulus_info(di)
                 # Gets the start times of each stimulus.
                 st = frameChanges[::2].reshape(-1, 1).copy()
                 # Gets the end times  of each stimulus.
                 et = frameChanges[1::2].reshape(-1, 1).copy()
-                
+
                 # Checks if number of frames and stimuli match (if not, there
                 # could have been an issue with the photodiode, check if there
                 # are irregular frames in the photodiode trace).
@@ -795,11 +797,11 @@ def process_metadata_directory(
                     warnings.warn("Number of frames and stimuli do not match")
                 # Adds the start and end times from above to the respective
                 # lists.
-               
+
                 gratingsSt.append(st)
                 gratingsEt.append(et)
                 # Adds the data from the stimProps dictionary to the respective
-                # lists (all the parameters: Ori, SFreq, TFreq, Contrast). 
+                # lists (all the parameters: Ori, SFreq, TFreq, Contrast).
                 gratingsOri.append(
                     stimProps.Ori.to_numpy().reshape(-1, 1).astype(int).copy()
                 )
@@ -821,7 +823,7 @@ def process_metadata_directory(
                     .astype(float)
                     .copy()
                 )
-                # If a reward experiment was performed, gets the rewarded 
+                # If a reward experiment was performed, gets the rewarded
                 # stimulus data.
                 if "Reward" in stimProps.columns:
                     gratingsReward.append(
@@ -870,10 +872,10 @@ def process_metadata_directory(
             cam1Frames = assign_frame_time(camera1, fs=1, plot=False)
             # Assigns frame times to the body camera.
             cam2Frames = assign_frame_time(camera2, fs=1, plot=False)
-            # Uses the above frame times to get the corrected arduino frame 
+            # Uses the above frame times to get the corrected arduino frame
             # times for the face camera.
             cam1Frames = at_new[cam1Frames.astype(int)]
-            # Uses the above frame times to get the corrected arduino frame 
+            # Uses the above frame times to get the corrected arduino frame
             # times for the body camera.
             cam2Frames = at_new[cam2Frames.astype(int)]
 
@@ -884,12 +886,12 @@ def process_metadata_directory(
         except:
             print("Error in arduino processing in directory: " + di)
             print(traceback.format_exc())
-        
-        # Gets the last frame from the previous experiment. 
-        # This is then added to all the different times so the times for the 
-        # full session are continuous. 
+
+        # Gets the last frame from the previous experiment.
+        # This is then added to all the different times so the times for the
+        # full session are continuous.
         lastFrame = nt[-1] + lastFrame
-        
+
     # Below chunk of code saves all the metadata into separate npy files.
     np.save(
         os.path.join(saveDirectory, "calcium.timestamps.npy"),

@@ -330,7 +330,6 @@ def remove_zcorrected_faults(ztrace, zprofiles, signals, metadata={}):
     # Gets the zprofiles which are only in the imaged planes.
     zp_focused = zprofiles[min(ztrace) : max(ztrace), :]
     # Normalises the zTrace so that the top imaged plane is the first plane.
-    ztrace = ztrace.copy()
     ztrace -= min(ztrace)
     # Calculates the difference between the z profiles for one plane and the
     # plane before. This gives the change in fluorescence between planes.
