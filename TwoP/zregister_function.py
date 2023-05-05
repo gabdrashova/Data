@@ -200,11 +200,11 @@ def z_register_one_file(ops):
     imp.reload(register)
 
     ops["refImg"] = refImgs
-
+    ops_paths_clean = np.delete(ops_paths, ops["ignore_flyback"])
     # Get the correlation between the reference images
     corrs_all = get_reference_correlation(frames, ops)
-    smooth_images_by_correlation(ops_paths, corrs_all)
-
+    smooth_images_by_correlation(ops_paths_clean, corrs_all)
+    cmaxRegistrations = []
     for ipl, ops_path in enumerate(ops_paths):
         if ipl in ops["ignore_flyback"]:
             print(">>>> skipping flyback PLANE", ipl)
@@ -213,12 +213,50 @@ def z_register_one_file(ops):
             print(">>>> registering PLANE", ipl)
         ops = np.load(ops_path, allow_pickle=True).item()
         ops = register.register_binary(ops, refImg=refImgs)
+        cmaxRegistrations.append(ops["cmax_registration"])
         np.save(ops["ops_path"], ops)
+    cmaxs = np.dstack(cmaxRegistrations)
 
-        # At this point the files are registered properly according to where they are
-        # now we need to go over each zposition and replace the frame on the channel with a weighted
-        # frame on the plane it actually is
-        replace_frames_by_zpos(ops, ops_paths, ipl)
+    # find which plane gives the best median correlation
+    maxPlaneCorr = np.nanmax(cmaxs, 2)
+    medianCorr = np.median(maxPlaneCorr, axis=0)
+    # go with the most stable plane and minorly correct according to the zpos
+    # of the plane
+    bestCorrRefPlane = np.nanargmax(medianCorr)
+    ops = np.load(ops_paths[bestCorrRefPlane + 1], allow_pickle=True).item()
+    maxCorrId = ops["zpos_registration"]
+
+    # maxCorrId = np.nanargmax(maxPlaneCorr, 1)
+
+    # At this point the files are registered properly according to where they are
+    # now we need to go over each zposition and replace the frame on the channel with a weighted
+    # frame on the plane it actually is
+    # replace_frames_by_zpos(ops, ops_paths, ipl)
+    create_new_plane_file(ops_paths_clean, maxCorrId)
+
+
+#%%
+
+#%%
+def create_new_plane_file(ops_paths, planeList):
+    ops0 = np.load(ops_paths[0], allow_pickle=True).item()
+    newSavePath = os.path.join(ops0["save_path0"], "suite2p", "aligned")
+    if not os.path.exists(newSavePath):
+        os.mkdir(newSavePath)
+    newBinFilePath = os.path.join(newSavePath, "data.bin")
+    newOps = ops0.copy()
+    newOps["ops_path"] = os.path.join(newSavePath, "ops.npy")
+    newOps["save_path"] = newBinFilePath
+    np.save(newOps["ops_path"], newOps)
+    with BinaryRWFile(
+        Ly=ops0["Ly"], Lx=ops0["Lx"], filename=newBinFilePath
+    ) as newFile:
+        for pi, p in enumerate(planeList):
+            ops = np.load(ops_paths[p], allow_pickle=True).item()
+            with BinaryRWFile(
+                Ly=ops0["Ly"], Lx=ops0["Lx"], filename=ops["reg_file"]
+            ) as planeFile:
+                newFile[pi : pi + 1] = planeFile[pi : pi + 1]
 
 
 def replace_frames_by_zpos(ops, ops_paths, plane):
@@ -296,6 +334,7 @@ def get_reference_correlation(refImgs, ops):
 
 def smooth_images_by_correlation(ops_paths, corrs_all):
     for ipl, ops_path in enumerate(ops_paths):
+
         corrs = corrs_all[ipl]
         ops = np.load(ops_paths[ipl], allow_pickle=True).item()
         reg_file = ops["reg_file"]
@@ -322,7 +361,7 @@ def smooth_images_by_correlation(ops_paths, corrs_all):
                             + f_plus[b : min(b + batch_size, n_frames)]
                             * corrs[1]
                         )
-            elif ipl == len(ops_paths):
+            elif ipl == (len(ops_paths) - 1):
                 ops_alt1 = np.load(
                     ops_paths[ipl - 1], allow_pickle=True
                 ).item()
