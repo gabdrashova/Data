@@ -845,9 +845,9 @@ def process_metadata_directory(
             # Gets the arduino data (see function for details).
             ardData, ardChans, at = get_arduino_data(di)
             # Gets the sync signal form the niDaq.
-            nidaqSync = nidaq[:, chans == "sync"][:, 0]
+            nidaqSync = nidaq[:, chans.lower() == "sync"][:, 0]
             # Gets the sync signal form the arduino.
-            ardSync = ardData[:, ardChans == "sync"][:, 0]
+            ardSync = ardData[:, ardChans.lower() == "sync"][:, 0]
             # Corrects the arduino time to be synched with the nidaq time
             # (see function for details).
             at_new = arduino_delay_compensation(nidaqSync, ardSync, nt, at)

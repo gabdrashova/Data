@@ -10,7 +10,10 @@ import pandas as pd
 
 ######### Ops settings for the boutton registration script
 
-s2pDir = "Z:\\RawData\\"
+
+def create_global_defs():
+    s2pDir = "C:\\TmpTest\\"
+    return s2pDir
 
 
 def create_ops_boutton_registration(filePath):
@@ -39,7 +42,7 @@ def create_ops_boutton_registration(filePath):
 def directories_to_register():
     dirDefs = [
         {
-            "Name": "Io",
+            "Name": "Io2",
             "Date": "2023-02-20",
             "Experiments": [1, 2],
         },
