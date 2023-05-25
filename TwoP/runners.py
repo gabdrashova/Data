@@ -842,12 +842,16 @@ def process_metadata_directory(
             print(traceback.format_exc())
         # Arduino data handling.
         try:
+
             # Gets the arduino data (see function for details).
             ardData, ardChans, at = get_arduino_data(di)
+            # make sure everything is in small letters
+            chans = np.array([s.lower() for s in chans])
+            ardChans = np.array([s.lower() for s in ardChans])
             # Gets the sync signal form the niDaq.
-            nidaqSync = nidaq[:, chans.lower() == "sync"][:, 0]
+            nidaqSync = nidaq[:, chans == "sync"][:, 0]
             # Gets the sync signal form the arduino.
-            ardSync = ardData[:, ardChans.lower() == "sync"][:, 0]
+            ardSync = ardData[:, ardChans == "sync"][:, 0]
             # Corrects the arduino time to be synched with the nidaq time
             # (see function for details).
             at_new = arduino_delay_compensation(nidaqSync, ardSync, nt, at)
