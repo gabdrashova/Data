@@ -12,7 +12,7 @@ import pandas as pd
 
 
 def create_global_defs():
-    s2pDir = "C:\\TmpTest\\"
+    s2pDir = "Z:\\RawData\\"
     return s2pDir
 
 
@@ -42,9 +42,9 @@ def create_ops_boutton_registration(filePath):
 def directories_to_register():
     dirDefs = [
         {
-            "Name": "Io2",
-            "Date": "2023-02-20",
-            "Experiments": [1, 2],
+            "Name": "Io",
+            "Date": "2023-01-18",
+            "Experiments": [1, 2, 3, 4, 5],
         },
     ]
     return pd.DataFrame(dirDefs)
