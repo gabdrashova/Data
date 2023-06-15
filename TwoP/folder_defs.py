@@ -56,15 +56,16 @@ def define_directories():
 
     """
 
-    csvDir = "D:\\preprocess.csv"
-    s2pDir = "Z:/Suite2Pprocessedfiles/"
+    # TODO: Make dictionary
+    dataDefFile = "D:\\preprocess.csv"
+    preprocessedDataDir = "Z:/Suite2Pprocessedfiles/"
     zstackDir = "Z:\\RawData\\"
     metadataDir = "Z:\\RawData\\"
 
-    return csvDir, s2pDir, zstackDir, metadataDir
+    return dataDefFile, preprocessedDataDir, zstackDir, metadataDir
 
 
-def create_processing_ops():
+def create_2p_processing_ops():
     """
         Creates the processing settings which includes:
     <<<<<<< Updated upstream
@@ -106,7 +107,11 @@ def create_processing_ops():
         "Npil_f0_window": 60,
         "zcorrect_mode": "Stack",
         "remove_z_extremes": True,
-        "process_suite2p": True,
+        "process_suite2p": False,
         "process_bonsai": True,
     }
     return pops
+
+
+def create_ephys_processing_ops():
+    pass

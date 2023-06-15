@@ -209,7 +209,7 @@ def detect_photodiode_changes(
     # For the first crosssing might be an issue detecting change if the
     # entire baseline is over threshold. Looks for the first that is over it
     # or under it, and add them if they appear before the first detected change.
-    changeInd = np.where(sigFilt > thresholdU)[0]
+    changeInd = np.where(sigFilt > mean_waitTime + std_waitTime)[0]
     changeInd = changeInd[changeInd >= waitTime]
     if (
         (len(changeInd) > 0)
@@ -395,28 +395,35 @@ def get_log_entry(filePath, entryString):
         props and their values.
 
     """
-
+    rowN = 0
     StimProperties = []
-
+    exactLogPath = glob.glob(os.path.join(filePath, "Log*.csv"))
+    if len(exactLogPath) == 0:
+        return None
+    else:
+        filePath = exactLogPath[0]
     with open(filePath, newline="") as csvfile:
         reader = csv.reader(csvfile, delimiter=" ", quotechar="|")
 
         for row in reader:
             a = []
-
-            for p in range(len(props)):
+            if "Video" in row[0]:
+                None
+            for p in range(len(entryString)):
                 # m = re.findall(props[p]+'=(\d*)', row[np.min([len(row)-1,p])])
-                m = re.findall(entryString, row[np.min([len(row) - 1, p])])
+                fullRow = "".join(row)
+                m = re.findall(
+                    entryString[p], fullRow
+                )  # row[np.min([len(row) - 1, p])
 
                 if len(m) > 0:
-                    a.append(m[0])
+                    # a.append(str(rowN) + "," + row[np.min([len(row) - 1, p])])
 
-            if len(a) > 0:
-                stimProps = {}
-
-                for p in range(len(props)):
-                    stimProps[props[p]] = a[p]
-                StimProperties.append(stimProps)
+                    # if len(a) > 0:
+                    stimProps = {entryString[p]: str(rowN) + "," + fullRow}
+                    # stimProps[entryString[p]] = a[p]
+                    StimProperties.append(stimProps)
+            rowN += 1
     return StimProperties
 
 

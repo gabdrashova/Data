@@ -14,15 +14,21 @@ import pickle
 import traceback
 from Data.TwoP.runners import *
 from Data.Bonsai.extract_data import *
-from Data.TwoP.folder_defs import *
+from Data.user_defs import *
 
+# TODO: change folder_defs to user_defs and move one level up
 
 # %% load directories and processing ops
 
 # Please change the values in define_directories and create_processing_ops in
 # module folder_defs.
-csvDir, s2pDir, zstackDir, metadataDir = define_directories()
-pops = create_processing_ops()
+dirs = define_directories()
+
+csvDir = dirs["dataDefFile"]
+s2pDir = dirs["preprocessedDataDir"]
+zstackDir = dirs["zstackDir"]
+metadataDir = dirs["metadataDir"]
+pops = create_2p_processing_ops()
 
 # %% read database
 
@@ -59,14 +65,14 @@ for i in range(len(database)):
             # Converts and places the planes to be ignored in an array that
             # is at least 1-dimensional.
             ignorePlanes = np.atleast_1d(
-                np.array(database.loc[0]["IgnorePlanes"]).astype(int)
+                np.array(database.loc[i]["IgnorePlanes"]).astype(int)
             )
             # Returns the ops dictionary.
-            if (pops['process_suite2p']):
+            if pops["process_suite2p"]:
                 ops = get_ops_file(s2pDirectory)
                 print("getting piezo data")
                 # Returns the movement of the piezo within one frame across the
-                # z-axis for all planes.                
+                # z-axis for all planes.
                 planePiezo = get_piezo_data(ops)
                 print("processing suite2p data")
                 fc = process_s2p_directory(
@@ -78,7 +84,7 @@ for i in range(len(database)):
                     ignorePlanes=ignorePlanes,
                     debug=pops["debug"],
                 )
-            if (pops'process_bonsai'):
+            if pops["process_bonsai"]:
                 print("reading bonsai data")
                 process_metadata_directory(
                     metadataDirectory, ops, pops, saveDirectory

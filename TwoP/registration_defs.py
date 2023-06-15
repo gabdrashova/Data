@@ -30,11 +30,15 @@ def create_ops_boutton_registration(filePath):
     ops["keep_movie_raw"] = True
     ops["align_by_chan"] = 1
 
+    ops["block_size"] = [64, 256]
     # run for only X number frames
     # ops['frames_include'] = 1000
 
     # set save folder
     ops["save_path0"] = filePath[0]
+
+    # localised optioed
+    ops["delete_extra_frames"] = False
 
     return ops
 
@@ -43,7 +47,7 @@ def directories_to_register():
     dirDefs = [
         {
             "Name": "Io",
-            "Date": "2023-01-18",
+            "Date": "2023-02-01",
             "Experiments": [1, 2, 3, 4, 5],
         },
     ]

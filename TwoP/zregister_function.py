@@ -20,7 +20,7 @@ pip install -e .​
 Then you'll get this version of suite2p installed. I will add it to the pip though sooner rather than later since there are some outstanding bugs. '
 """
 
-import time, os
+import time, os, shutil
 import numpy as np
 from suite2p.registration import register, rigid, bidiphase
 from suite2p.io import tiff_to_binary, BinaryRWFile
@@ -30,10 +30,14 @@ from tifffile import imread
 import matplotlib.pyplot as plt
 from natsort import natsorted
 import imp
+from suite2p import default_ops
 from suite2p.registration import utils, rigid
+from suite2p import run_s2p
 from registration_defs import *
 from runners import read_directory_dictionary
+from Data.user_defs import define_directories, create_ops_boutton_registration
 from os import path
+import glob
 
 
 def run_single_registration(dataEntry):
@@ -49,10 +53,21 @@ def run_single_registration(dataEntry):
     None.
 
     """
-    s2pDir = create_global_defs()
+    defs = define_directories()
+    s2pDir = defs["metadataDir"]
     filePath = read_directory_dictionary(dataEntry, s2pDir)
     ops = create_ops_boutton_registration(filePath)
-    z_register_one_file(ops)
+    if ops["run_registration"]:
+        newOps = z_register_one_file(ops)
+    else:
+        lastPlane = glob.glob(
+            os.path.join(ops["save_path0"], "suite2p", "plane*")
+        )[-1]
+        newOps = np.load(
+            os.path.join(lastPlane, "ops.npy"), allow_pickle=True
+        ).item()
+    if ops["run_detection"]:
+        run_s2p(ops=newOps)
 
 
 def z_register_one_file(ops):
@@ -223,7 +238,7 @@ def z_register_one_file(ops):
     # go with the most stable plane and minorly correct according to the zpos
     # of the plane
     bestCorrRefPlane = np.nanargmax(medianCorr)
-    ops = np.load(ops_paths[bestCorrRefPlane + 1], allow_pickle=True).item()
+    ops = np.load(ops_paths_clean[bestCorrRefPlane], allow_pickle=True).item()
     maxCorrId = ops["zpos_registration"]
 
     # maxCorrId = np.nanargmax(maxPlaneCorr, 1)
@@ -232,21 +247,34 @@ def z_register_one_file(ops):
     # now we need to go over each zposition and replace the frame on the channel with a weighted
     # frame on the plane it actually is
     # replace_frames_by_zpos(ops, ops_paths, ipl)
-    create_new_plane_file(ops_paths_clean, maxCorrId)
+    create_new_plane_file(
+        ops_paths_clean,
+        maxCorrId,
+        bestCorrRefPlane + 1,
+        ops["delete_extra_frames"],
+    )
+    return ops
 
 
 #%%
 
 #%%
-def create_new_plane_file(ops_paths, planeList):
+
+
+def create_new_plane_file(ops_paths, planeList, selected_plane, delete_extra):
     ops0 = np.load(ops_paths[0], allow_pickle=True).item()
-    newSavePath = os.path.join(ops0["save_path0"], "suite2p", "aligned")
+    newSavePath = os.path.join(
+        ops0["save_path0"], "suite2p", "plane" + str(len(ops_paths) + 1)
+    )
     if not os.path.exists(newSavePath):
         os.mkdir(newSavePath)
     newBinFilePath = os.path.join(newSavePath, "data.bin")
     newOps = ops0.copy()
     newOps["ops_path"] = os.path.join(newSavePath, "ops.npy")
-    newOps["save_path"] = newBinFilePath
+    newOps["save_path"] = newSavePath
+    newOps["raw_file"] = []
+    newOps["reg_file"] = newBinFilePath
+    newOps["selected_plane"] = selected_plane
     np.save(newOps["ops_path"], newOps)
     with BinaryRWFile(
         Ly=ops0["Ly"], Lx=ops0["Lx"], filename=newBinFilePath
@@ -257,6 +285,15 @@ def create_new_plane_file(ops_paths, planeList):
                 Ly=ops0["Ly"], Lx=ops0["Lx"], filename=ops["reg_file"]
             ) as planeFile:
                 newFile[pi : pi + 1] = planeFile[pi : pi + 1]
+    # rename/delete all the other directories names so they will not be treated
+    for op in ops_paths:
+        ops = np.load(op, allow_pickle=True).item()
+        del_path = ops["save_path"]
+        if delete_extra:
+            shutil.rmtree(del_path)
+        else:
+            os.rename(del_path, del_path + "_backup")
+    return newOps
 
 
 def replace_frames_by_zpos(ops, ops_paths, plane):

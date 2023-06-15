@@ -24,8 +24,7 @@ from Data.TwoP.process_tiff import *
 from Data.TwoP.preprocess_traces import *
 from Data.Bonsai.extract_data import *
 from Data.TwoP.general import *
-from Data.TwoP.folder_defs import create_processing_ops
-from registration_defs import *
+from Data.user_defs import create_2p_processing_ops, directories_to_register
 
 
 def _process_s2p_singlePlane(
@@ -38,7 +37,7 @@ def _process_s2p_singlePlane(
     ----------
     pops : dict [6]
         The dictionary with all the processing infomration needed. Refer to the
-        function create_processing_ops in folder_defs for a more in depth
+        function create_processing_ops in user_defs for a more in depth
         description.
     planeDirs : list [str of directories]
         List containing the directories refering to the plane subfolders in the
@@ -357,7 +356,7 @@ def _process_s2p_singlePlane(
 
 def process_s2p_directory(
     suite2pDirectory,
-    pops=create_processing_ops(),
+    pops=create_2p_processing_ops(),
     piezoTraces=None,
     zstackPath=None,
     saveDirectory=None,
@@ -490,7 +489,7 @@ def process_s2p_directory(
 # bonsai + arduino
 # TODO: comment
 def process_metadata_directory(
-    bonsai_dir, ops, pops=create_processing_ops, saveDirectory=None
+    bonsai_dir, ops, pops=create_2p_processing_ops, saveDirectory=None
 ):
     """
 
@@ -522,7 +521,7 @@ def process_metadata_directory(
         The suite2p ops file.
     pops : dict [6], optional
         The dictionary with all the processing infomration needed. Refer to the
-        function create_processing_ops in folder_defs for a more in depth
+        function create_processing_ops in user_defs for a more in depth
         description.
     saveDirectory : str, optional
         the directory where the processed data will be saved.
@@ -1029,15 +1028,15 @@ def read_csv_produce_directories(dataEntry, s2pDir, zstackDir, metadataDir):
     s2pDir : string
         Filepath to the Suite2P processed folder. For more details on what this
         should contain please look at the define_directories function
-        definition in folder_defs.
+        definition in user_defs.
     zstackDir : string
         Filepath to the Z stack.For more details on what this should contain
         please look at the define_directories function definition in
-        folder_defs.
+        user_defs.
     metadataDir : string
         Filepath to the metadata directory.For more details on what this
         should contain please look at the define_directories function
-        definition in folder_defs.
+        definition in user_defs.
 
     Returns
     -------
@@ -1130,15 +1129,15 @@ def read_directory_dictionary(dataEntry, s2pDirectory):
     s2pDir : string
         Filepath to the Suite2P processed folder. For more details on what this
         should contain please look at the define_directories function
-        definition in folder_defs.
+        definition in user_defs.
     zstackDir : string
         Filepath to the Z stack.For more details on what this should contain
         please look at the define_directories function definition in
-        folder_defs.
+        user_defs.
     metadataDir : string
         Filepath to the metadata directory.For more details on what this
         should contain please look at the define_directories function
-        definition in folder_defs.
+        definition in user_defs.
 
     Returns
     -------
