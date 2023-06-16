@@ -591,6 +591,7 @@ def process_metadata_directory(
     circleWhite = []
     circleDuration = []
 
+    sparseNoise = False
     for dInd, di in enumerate(metadataDirectory_dirList):
         if len(os.listdir(di)) == 0:
             continue
@@ -666,6 +667,7 @@ def process_metadata_directory(
             if len(sparseFile) != 0:
                 sparseMap = get_sparse_noise(di)
                 sparseMap = sparseMap[: len(frameChanges), :, :]
+                sparseNoise = True
 
                 # Calculates the end of the final frame.
                 sparse_et = np.append(
@@ -872,16 +874,30 @@ def process_metadata_directory(
             # Gets the (assumed to be) body camera data.
             camera2 = ardData[:, ardChans == "camera2"][:, 0]
             # Assigns frame times to the face camera.
-            cam1Frames = assign_frame_time(camera1, fs=1, plot=False)
-            # Assigns frame times to the body camera.
-            cam2Frames = assign_frame_time(camera2, fs=1, plot=False)
-            # Uses the above frame times to get the corrected arduino frame
-            # times for the face camera.
-            cam1Frames = at_new[cam1Frames.astype(int)]
-            # Uses the above frame times to get the corrected arduino frame
-            # times for the body camera.
-            cam2Frames = at_new[cam2Frames.astype(int)]
+            # cam1Frames = assign_frame_time(camera1, fs=1, plot=False)
+            # # Assigns frame times to the body camera.
+            # cam2Frames = assign_frame_time(camera2, fs=1, plot=False)
+            # # Uses the above frame times to get the corrected arduino frame
+            # # times for the face camera.
+            # cam1Frames = at_new[cam1Frames.astype(int)]
+            # # Uses the above frame times to get the corrected arduino frame
+            # # times for the body camera.
+            # cam2Frames = at_new[cam2Frames.astype(int)]
 
+            # look in log for video times
+            # for some reason column names were different in sparse protocol
+            if sparseNoise:
+                logColNames = ["VideoFrame", "Video,[0-9]*", "NiDaq*"]
+            else:
+                logColNames = ["Video$", "Video,[0-9]*", "Analog*"]
+
+            colNiTimes = get_recorded_video_times(
+                di,
+                logColNames,
+                ["EyeVid", "BodyVid", "NI"],
+            )
+            cam1Frames = colNiTimes["EyeVid"].astype(int)
+            cam2Frames = colNiTimes["BodyVid"].astype(int)
             # Adds the face times to the faceTimes list.
             faceTimes.append(cam1Frames + lastFrame)
             # Adds the body times to the bodyTimes list.

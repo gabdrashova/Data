@@ -68,7 +68,7 @@ def define_directories():
         "dataDefFile": "D:\\preprocess.csv",
         "preprocessedDataDir": "Z:/Suite2Pprocessedfiles/",
         "zstackDir": "Z:\\RawData\\",
-        "metadataDir": "Z:\\RawData\\",  # "C:\\TmpTest\\",
+        "metadataDir": "Z:\\RawData\\",
     }
     return (
         directoryDb  # dataDefFile, preprocessedDataDir, zstackDir, metadataDir
@@ -141,8 +141,8 @@ def create_ops_boutton_registration(filePath):
     ops["keep_movie_raw"] = True
     ops["align_by_chan"] = 1
 
-    ops["block_size"] = [256, 64]
-    ops["nonrigid"] = False
+    ops["block_size"] = [256, 256]
+    ops["nonrigid"] = True
     # run for only X number frames
     # ops['frames_include'] = 1000
 

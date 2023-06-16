@@ -534,7 +534,7 @@ def get_arduino_data(arduinoDirectory, plot=False):
     csvChannels = np.loadtxt(arduinoFilePath, delimiter=",")
     # arduinoTime = csvChannels[:,-1]
     # Calculates the arduino time.
-    arduinoTime = np.arange(csvChannels.shape[0]) / 500
+    arduinoTime = np.arange(csvChannels.shape[0]) / 1000
     # arduinoTimeDiff = np.diff(arduinoTime,prepend=True)
     # normalTimeDiff = np.where(arduinoTimeDiff>-100)[0]
     # csvChannels = csvChannels[normalTimeDiff,:]
