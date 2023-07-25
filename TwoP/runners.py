@@ -14,6 +14,7 @@ import time
 import traceback
 import io
 import os
+import cv2
 import skimage.io
 import glob
 import pickle
@@ -67,6 +68,8 @@ def _process_s2p_singlePlane(
 
     """
     # Sets the current plane to processed.
+    if plane > len(planeDirs) - 1:
+        return None
     currDir = planeDirs[plane]
     # Array of fluorescence traces [ROIs x timepoints].
     F = np.load(os.path.join(currDir, "F.npy"), allow_pickle=True).T
@@ -93,7 +96,10 @@ def _process_s2p_singlePlane(
     # Creates array to place the X, Y and Z positions of ROIs.
     cellLocs = np.zeros((len(stat), 3))
     # Gets the resolution (in pixels) along the y dimension.
-    ySpan = ops["refImg"].shape[1]
+    if type(ops["refImg"]) is np.ndarray:
+        ySpan = ops["refImg"].shape[1]
+    if type(ops["refImg"]) is list:
+        ySpan = ops["refImg"][0].shape[1]
 
     # Adds the absolute signal value to F, see function for a more details.
     F = zero_signal(F)
@@ -304,8 +310,8 @@ def _process_s2p_singlePlane(
                 bbox_to_anchor=(1.01, 1),
                 loc="upper left",
             )
-            ax["zcorr"].plot(dF[1:500, i], "b", linewidth = 3)
-            ax["zcorr"].plot(Fcz[1:500, i], "k", alpha = 0.3)            
+            ax["zcorr"].plot(dF[1:500, i], "b", linewidth=3)
+            ax["zcorr"].plot(Fcz[1:500, i], "k", alpha=0.3)
             ax["zcorr"].legend(
                 ["dF/F", "dF/F z-zcorrected"],
                 bbox_to_anchor=(1.01, 1),
@@ -444,15 +450,16 @@ def process_s2p_directory(
     zCorrs = []
     # Appends lists with the results for all the planes.
     for i in range(len(results)):
-        signalList.append(results[i]["dff_zcorr"])
-        signalLocs.append(results[i]["locs"])
-        zTraces.append(results[i]["zTrace"])
-        zProfiles.append(results[i]["zProfiles"])
-        zCorrs.append(results[i]["zCorr_stack"])
-        # Places the signal into an array.
-        res = signalList[i]
-        # Specifies which plane each ROI belongs to.
-        planes = np.append(planes, np.ones(res.shape[1]) * planeRange[i])
+        if not (results[i] is None):
+            signalList.append(results[i]["dff_zcorr"])
+            signalLocs.append(results[i]["locs"])
+            zTraces.append(results[i]["zTrace"])
+            zProfiles.append(results[i]["zProfiles"])
+            zCorrs.append(results[i]["zCorr_stack"])
+            # Places the signal into an array.
+            res = signalList[i]
+            # Specifies which plane each ROI belongs to.
+            planes = np.append(planes, np.ones(res.shape[1]) * planeRange[i])
     # Specifies number to compare the length of the signals to.
     minLength = 10**10
     for i in range(len(signalList)):
@@ -590,8 +597,9 @@ def process_metadata_directory(
     circleWhite = []
     circleDuration = []
 
-    sparseNoise = False
     for dInd, di in enumerate(metadataDirectory_dirList):
+        sparseNoise = False
+        print(f"Directory: {di}")
         if len(os.listdir(di)) == 0:
             continue
         # Moves on if not a directory (even though ideally all should be a dir).
@@ -650,6 +658,9 @@ def process_metadata_directory(
             propsFile[0], dtype=str, delimiter=",", ndmin=2
         ).T
 
+        if propTitles[0] == "Spont":
+            sparseNoise = True
+
         try:
             # Gets the photodiode data.
             photodiode = nidaq[:, chans == "photodiode"]
@@ -679,6 +690,7 @@ def process_metadata_directory(
                 sparseMaps.append(sparseMap.copy())
 
                 # np.save(os.path.join(saveDirectory,'sparse.st.npy'),frameChanges)
+
             # Gets the retinal classification metadata.
             if propTitles[0] == "Retinal":
                 # Calculates the end of the final frame.
@@ -895,8 +907,31 @@ def process_metadata_directory(
                 logColNames,
                 ["EyeVid", "BodyVid", "NI"],
             )
-            cam1Frames = colNiTimes["EyeVid"].astype(int)
-            cam2Frames = colNiTimes["BodyVid"].astype(int)
+            cam1Frames = colNiTimes["EyeVid"].astype(float) / 1000
+            cam2Frames = colNiTimes["BodyVid"].astype(float) / 1000
+            # Get actual video data
+            vfile = a = glob.glob(os.path.join(di, "Video*.avi"))[0]  # eye
+            video1 = cv2.VideoCapture(vfile)
+            vfile = a = glob.glob(os.path.join(di, "Video*.avi"))[1]  # body
+            video2 = cv2.VideoCapture(vfile)
+            # number of frames
+            nframes1 = int(video1.get(cv2.CAP_PROP_FRAME_COUNT))
+            nframes2 = int(video2.get(cv2.CAP_PROP_FRAME_COUNT))
+            # add time stamp buffer for unknown frames
+            addFrames1 = nframes1 - len(cam1Frames)
+            addFrames2 = nframes2 - len(cam2Frames)
+            cam1Frames = np.append(cam1Frames, np.ones(addFrames1) * np.nan)
+            cam2Frames = np.append(cam2Frames, np.ones(addFrames2) * np.nan)
+
+            if nframes1 > len(cam1Frames):
+                c1f = np.ones(nframes1) * np.nan
+                c1f[: len(cam1Frames)] = cam1Frames
+                cam1Frames = c1f
+            if nframes2 > len(cam1Frames):
+                c2f = np.ones(nframes2) * np.nan
+                c2f[: len(cam2Frames)] = cam2Frames
+                cam2Frames = c2f
+
             # Adds the face times to the faceTimes list.
             faceTimes.append(cam1Frames + lastFrame)
             # Adds the body times to the bodyTimes list.

@@ -68,8 +68,9 @@ for i in range(len(database)):
                 np.array(database.loc[i]["IgnorePlanes"]).astype(int)
             )
             # Returns the ops dictionary.
+            ops = get_ops_file(s2pDirectory)
             if pops["process_suite2p"]:
-                ops = get_ops_file(s2pDirectory)
+
                 print("getting piezo data")
                 # Returns the movement of the piezo within one frame across the
                 # z-axis for all planes.

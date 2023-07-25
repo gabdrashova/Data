@@ -58,15 +58,9 @@ def define_directories():
 
     """
 
-    # TODO: Make dictionary
-    dataDefFile = "D:\\preprocess.csv"
-    preprocessedDataDir = "Z:/Suite2Pprocessedfiles/"
-    zstackDir = "Z:\\RawData\\"
-    metadataDir = "Z:\\RawData\\"
-
     directoryDb = {
-        "dataDefFile": "D:\\preprocess.csv",
-        "preprocessedDataDir": "Z:/Suite2Pprocessedfiles/",
+        "dataDefFile": "D:\\preprocessBoutons.csv",
+        "preprocessedDataDir": "Z:/ProcessedData/",
         "zstackDir": "Z:\\RawData\\",
         "metadataDir": "Z:\\RawData\\",
     }
@@ -110,14 +104,14 @@ def create_2p_processing_ops():
 
     """
     pops = {
-        "debug": True,
-        "plot": False,
+        "debug": False,
+        "plot": True,
         "f0_percentile": 8,
         "f0_window": 300,
         "Npil_f0_window": 60,
         "zcorrect_mode": "Stack",
-        "remove_z_extremes": True,
-        "process_suite2p": False,
+        "remove_z_extremes": False,
+        "process_suite2p": True,
         "process_bonsai": True,
     }
     return pops
@@ -150,19 +144,44 @@ def create_ops_boutton_registration(filePath):
     ops["save_path0"] = filePath[0]
 
     # localised optioed
-    ops["delete_extra_frames"] = False
+    ops["delete_extra_frames"] = True
     ops["run_registration"] = True
     ops["run_detection"] = True
+
+    # detection settings
+    ops["allow_overlap"] = True
+    ops["max_overlap"] = 0.2
+    ops["max_iterations"] = 100
 
     return ops
 
 
 def directories_to_register():
     dirDefs = [
+        # {
+        #     "Name": "Io",
+        #     "Date": "2023-02-15",
+        #     "Experiments": [2, 3, 4, 5, 6, 7],
+        # },
         {
             "Name": "Io",
-            "Date": "2023-02-13",
-            "Experiments": [2, 3, 4, 5, 6, 7, 8],
+            "Date": "2023-02-20",
+            "Experiments": [1, 3, 4, 5, 6, 7],
+        },
+        # {
+        #     "Name": "Io",
+        #     "Date": "2023-05-22",
+        #     "Experiments": [2, 3, 4, 5, 6],
+        # },
+        # {
+        #     "Name": "Janus",
+        #     "Date": "2023-02-14",
+        #     "Experiments": [2, 3, 4, 5, 6, 7],
+        # },
+        {
+            "Name": "Janus",
+            "Date": "2023-02-22",
+            "Experiments": [1, 3, 4, 5, 6, 7],
         },
     ]
     return pd.DataFrame(dirDefs)

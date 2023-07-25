@@ -293,6 +293,7 @@ def create_new_plane_file(ops_paths, planeList, selected_plane, delete_extra):
             shutil.rmtree(del_path)
         else:
             os.rename(del_path, del_path + "_backup")
+            newOps["ignore_flyback"] = np.arange(len(ops_paths) + 1)
     return newOps
 
 

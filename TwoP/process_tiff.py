@@ -255,7 +255,9 @@ def registerStacktoRef(zstack, refImg, ops=default_ops()):
     return zstackCorrected
 
 
-def register_zstack(tiff_path, spacing=1, piezo=None, target_image=None):
+def register_zstack(
+    tiff_path, spacing=1, piezo=None, target_image=None, channel=1
+):
     """
     Loads tiff file containing imaged z-stack, aligns all frames to each other,
     averages across repetitions, and (if piezo not None) reslices the 3D
@@ -287,6 +289,9 @@ def register_zstack(tiff_path, spacing=1, piezo=None, target_image=None):
     """
     # Loads Z stack.
     image = skimage.io.imread(tiff_path)
+    # there are two channel
+    if image.ndim > 4:
+        image = image[:, :, channel - 1, :, :]
 
     # Gets the number of planes and no. of pixels along X and Y.
     planes = image.shape[0]

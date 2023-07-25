@@ -892,3 +892,98 @@ def get_ops_file(suite2pDir):
         os.path.join(combinedDir[0], "ops.npy"), allow_pickle=True
     ).item()
     return ops
+
+
+def get_recorded_video_times(di, searchTerms, cleanNames):
+    """
+    Gets the recorded video times from the log files that bonsai is saving
+
+    Parameters
+    ----------
+    di : str
+        The directory where the log file resides.
+    searchTerms : list (str)
+        The terms used to represent the different video recordings .Last has to be the Nidaq.
+    cleanNames : str
+        A nicer names to use when logging the entries.
+
+    Returns
+    -------
+    None.
+
+    """
+    log = get_log_entry(di, searchTerms)
+    log_df = pd.DataFrame(log)
+
+    # create rename dict
+    renameDict = {}
+    for i in range(len(searchTerms)):
+        renameDict[searchTerms[i]] = cleanNames[i]
+    log_df.rename(
+        columns=renameDict,
+        inplace=True,
+    )
+
+    # change NI values
+    occurenceInds = log_df[cleanNames[-1]].index[
+        log_df[cleanNames[-1]].notna()
+    ]
+    a = log_df.loc[occurenceInds, cleanNames[-1]] = np.arange(
+        len(occurenceInds)
+    )
+
+    # vidLogEye = log_df["EyeVid"].values
+    # vidLogBody = log_df["BodyVid"].values
+    niLog = log_df[cleanNames[-1]].dropna().values
+    logFramesNi = np.zeros((len(niLog), 2)) * np.nan
+    for j in range(len(niLog)):
+        if not np.isnan(niLog[j]):
+            logFramesNi[j, 0] = int(niLog[j])  # niLog[j].split(",")[0]
+            logFramesNi[j, 1] = j
+
+    # find the indeces where this movie gave a frame based on the search term
+    Inds = []
+    for i in range(len(cleanNames)):
+        Inds.append(log_df[cleanNames[i]].index[log_df[cleanNames[i]].notna()])
+    Inds = pd.array(Inds)
+
+    # make smaller database without the other non Ni events
+    colNiTimes = {}
+    for i in range(len(Inds) - 1):
+        removeInds = pd.Index([])
+        mini_inds = np.setdiff1d(range(len(Inds) - 1), i)
+        dropInds = pd.Index([], dtype=np.int64).append(
+            Inds[mini_inds].tolist()
+        )
+        mini_df = log_df.drop(dropInds).reset_index()
+
+        # get ni frames
+        occurenceInds = mini_df[cleanNames[i]].index[
+            mini_df[cleanNames[i]].notna()
+        ]
+
+        logTimeValues = mini_df.iloc[occurenceInds - 1][cleanNames[-1]].values
+        # the points that probably had two videos recorded in a row
+        nanInds = np.where(logTimeValues.astype(str) == "nan")[0]
+
+        for nind in nanInds:
+            plus = 2
+            logTimeValues[nind] = mini_df.iloc[occurenceInds[nind] + plus][
+                cleanNames[-1]
+            ]
+            # carry on until finding the first that is not nan
+            while str(logTimeValues[nind]) == "nan":
+                plus += 1
+                logTimeValues[nind] = mini_df.iloc[occurenceInds[nind] + plus][
+                    cleanNames[-1]
+                ]
+        logFrames = logTimeValues
+        # logFrames = np.zeros(len(logTimeValues)) * np.nan
+        # for j in range(len(logTimeValues)):
+        #     if type(logTimeValues[j]) == str:
+        #         # logFrames[j] = logTimeValues[j].split(",")[0]
+        #         logFrames[j] =
+
+        colNiTimes[cleanNames[i]] = logFrames
+    colNiTimes[cleanNames[-1]] = logFramesNi[:, 0]
+    return colNiTimes
