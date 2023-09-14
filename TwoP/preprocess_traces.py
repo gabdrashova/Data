@@ -5,25 +5,6 @@ from Data.TwoP.general import linearAnalyticalSolution
 import pandas as pd
 
 
-def GetCalciumAligned(signal, time, eventTimes, window, planes, delays):
-    aligned = []
-    run = 0
-    ps = np.unique(planes).astype(int)
-    for p in range(len(ps)):
-        aligned_tmp, t = AlignStim(
-            signal[:, np.where(planes == ps[p])[0]],
-            time + delays[0, ps[p]],
-            eventTimes,
-            window,
-        )
-        if run == 0:
-            aligned = aligned_tmp
-            run += 1
-        else:
-            aligned = np.concatenate((aligned, aligned_tmp), axis=2)
-    return np.array(aligned), t
-
-
 def correct_neuropil(
     F: np.ndarray,
     N: np.ndarray,
