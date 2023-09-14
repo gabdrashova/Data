@@ -4,6 +4,56 @@ Created on Thu Sep 14 10:23:39 2023
 
 @author: Liad
 """
+from sklearn.model_selection import KFold
+from sklearn.metrics import explained_variance_score
+import numpy as np
+from matplotlib import pyplot as plt
+import random
+import sklearn
+import seaborn as sns
+import scipy as sp
+from matplotlib import rc
+import matplotlib.ticker as mtick
+import matplotlib as mpl
+import sys
+import dask.array as da
+import pandas as pd
+import re
+import traceback
+from numba import jit, cuda
+
+from scipy import signal
+from sklearn.linear_model import LinearRegression
+from sklearn.impute import SimpleImputer
+from sklearn.linear_model import ElasticNet
+from sklearn.linear_model import ElasticNetCV
+from sklearn.datasets import make_regression
+from sklearn.decomposition import PCA
+from sklearn.linear_model import RidgeCV
+from sklearn.linear_model import Ridge
+from sklearn.linear_model import Lasso
+from sklearn.model_selection import train_test_split
+from sklearn import linear_model
+from sklearn.metrics import r2_score
+
+import os
+import glob
+import pickle
+from numba import jit
+
+import statsmodels.api as sm
+from statsmodels.formula.api import ols
+from statsmodels.tsa.stattools import acf
+from statsmodels.stats.multicomp import pairwise_tukeyhsd
+import statsmodels.formula.api as smf
+
+from alignment_functions import get_calcium_aligned, align_stim
+
+from fitting_classes import OriTuner, FrequencyTuner, ContrastTuner
+
+import traceback
+from abc import ABC, abstractmethod
+import inspect
 
 
 def get_directory_from_session(mainDir, session):
@@ -19,18 +69,18 @@ def get_trial_classification_running(
     wheelTs,
     stimSt,
     stimEt,
-    quietThreshold=0.01,
+    quietQuantile=0.01,
     activeQuantile=0.5,
     criterion=0.9,
 ):
-    wh, ts = AlignStim(
+    wh, ts = align_stim(
         wheelVelocity,
         wheelTs,
         stimSt,
         np.hstack((stimSt, stimEt)) - stimSt,
     )
 
-    whLow = wh < 0.5
+    whLow = wh <= np.quantile(wheelVelocity, quietQuantile)
     whLow = np.sum(whLow, 0) / whLow.shape[0]
     activeThreshold = np.quantile(wheelVelocity, activeQuantile)
     whHigh = wh > activeThreshold
@@ -47,24 +97,32 @@ def make_neuron_db(
     ts,
     quiet,
     active,
-    tf,
-    sf,
-    contrast,
-    ori,
+    data,
     n,
     blTime=-0.5,
-    maxTime=2,
 ):
-
+    tf = data["gratingsTf"]
+    sf = data["gratingsSf"]
+    contrast = data["gratingsContrast"]
+    ori = data["gratingsOri"]
+    duration = data["gratingsEt"] - data["gratingsSt"]
     resp = resp[:, :, n]
+    maxTime = np.min(duration)
     # trials X
 
     bl = np.nanmean(resp[(ts >= blTime) & (ts <= 0), :], axis=0)
     resp_corrected = resp - bl
-    avg = np.nanmean(resp[(ts > 0) & (ts <= maxTime)], axis=0)
-    avg_corrected = np.nanmean(
-        resp_corrected[(ts > 0) & (ts <= maxTime)], axis=0
-    )
+    avg = np.zeros(resp.shape[1])
+    avg_corrected = avg.copy()
+    for i in range(resp.shape[1]):
+        avg[i] = np.nanmean(resp[(ts > 0) & (ts <= duration[i]), i], axis=0)
+        avg_corrected[i] = np.nanmean(
+            resp_corrected[(ts > 0) & (ts <= duration[i]), i], axis=0
+        )
+    # avg = np.nanmean(resp[(ts > 0) & (ts <= maxTime)], axis=0)
+    # avg_corrected = np.nanmean(
+    #     resp_corrected[(ts > 0) & (ts <= maxTime)], axis=0
+    # )
 
     movement = np.ones(avg.shape[0]) * np.nan
     movement[quiet] = 0
@@ -326,10 +384,7 @@ def run_complete_analysis(
         ts,
         quietI,
         activeI,
-        data["gratingsTf"],
-        data["gratingsSf"],
-        data["gratingsContrast"],
-        data["gratingsOri"],
+        data,
         n,
     )
     res_ori = make_empty_results("Ori")
@@ -404,3 +459,33 @@ def run_complete_analysis(
         res_spatial,
         res_contrast,
     )
+
+
+def load_grating_data(directory):
+    fileNameDic = {
+        "sig": "calcium.dff.npy",
+        "planes": "calcium.planes.npy",
+        "planeDelays": "planes.delay.npy",
+        "calTs": "calcium.timestamps.npy",
+        "faceTs": "face.timestamps.npy",
+        "gratingsContrast": "gratings.contrast.npy",
+        "gratingsOri": "gratings.ori.npy",
+        "gratingsEt": "gratings.et.npy",
+        "gratingsSt": "gratings.st.npy",
+        "gratingsReward": "gratings.reward.npy",
+        "gratingsSf": "gratings.spatialF.npy",
+        "gratingsTf": "gratings.temporalF.npy",
+        "wheelTs": "wheel.timestamps.npy",
+        "wheelVelocity": "wheel.velocity.npy",
+    }
+
+    # check if an update exists
+    if os.path.exists(os.path.join(directory, "gratings.st.updated.npy")):
+        fileNameDic["gratingsSt"] = "gratings.st.updated.npy"
+
+    if os.path.exists(os.path.join(directory, "gratings.et.updated.npy")):
+        fileNameDic["gratingsEt"] = "gratings.et.updated.npy"
+    data = {}
+    for key in fileNameDic.keys():
+        data[key] = np.load(os.path.join(directory, fileNameDic[key]))
+    return data
