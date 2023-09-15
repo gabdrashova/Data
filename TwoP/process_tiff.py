@@ -25,7 +25,7 @@ from numba import jit
 from Data.TwoP.preprocess_traces import zero_signal
 
 
-@jit(forceobj=True)
+# @jit(forceobj=True)
 def _fill_plane_piezo(stack, piezoNorm, i, spacing=1):
     """
     Slants the Z stack planes according to how slanted the imaged frames are.
@@ -50,6 +50,7 @@ def _fill_plane_piezo(stack, piezoNorm, i, spacing=1):
     """
     # Normalises the piezo trace to the top depth.
     piezoNorm -= piezoNorm[0]
+
     # Adds the value of the current Z stack plane (equivalent to 1um/plane).
     piezoNorm += i
 
@@ -322,10 +323,10 @@ def register_zstack(
         # Changes the slant of each plane of the Z stack using the function
         # _fill_plane_piezo. See function for details.
         for p in range(planes):
-            # print(p)
-
             zstackTmp[p, :, :] = _fill_plane_piezo(zstack, piezoNorm, p)
+        # apply a gaussian filter of 1 sigma on the y axis
         zstack = zstackTmp
+        zstack = sp.ndimage.gaussian_filter(zstack, (0, 1, 0))
 
     if not (target_image is None):
         # Registers the z Stack to the reference image using functions from

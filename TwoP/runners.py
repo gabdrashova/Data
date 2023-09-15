@@ -172,7 +172,7 @@ def _process_s2p_singlePlane(
                     spacing=1,
                     piezo=piezo,
                     target_image=refImg,
-                    ops=ops["align_by_chan"],
+                    channel=ops["align_by_chan"],
                 )
                 # Saves registered Z stack in the specified or default saveDir.
                 skimage.io.imsave(zFileName, zstack)
