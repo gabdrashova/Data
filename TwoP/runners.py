@@ -1057,7 +1057,7 @@ def process_metadata_directory(
             np.hstack(velocity).reshape(-1, 1),
         )
         np.save(
-            os.path.join(saveDirectory, "face.timestamps.npy"),
+            os.path.join(saveDirectory, "eye.timestamps.npy"),
             np.hstack(faceTimes).reshape(-1, 1),
         )
         np.save(
