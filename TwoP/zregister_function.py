@@ -256,11 +256,6 @@ def z_register_one_file(ops):
     return ops
 
 
-#%%
-
-#%%
-
-
 def create_new_plane_file(ops_paths, planeList, selected_plane, delete_extra):
     ops0 = np.load(ops_paths[0], allow_pickle=True).item()
     newSavePath = os.path.join(

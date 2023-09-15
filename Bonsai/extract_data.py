@@ -871,29 +871,6 @@ def get_piezo_data(ops):
     return planePiezo
 
 
-def get_ops_file(suite2pDir):
-    """
-    Loads the ops file from the combined folder in the suite2p folder. Ops file
-    is generated directly from suite2p.
-
-    Parameters
-    ----------
-    suite2pDir : str
-        The main directory where the suite2p folders are located.
-
-    Returns
-    -------
-    ops : dict
-        The suite2p ops dictionary.
-
-    """
-    combinedDir = glob.glob(os.path.join(suite2pDir, "combined*"))
-    ops = np.load(
-        os.path.join(combinedDir[0], "ops.npy"), allow_pickle=True
-    ).item()
-    return ops
-
-
 def get_recorded_video_times(di, searchTerms, cleanNames):
     """
     Gets the recorded video times from the log files that bonsai is saving

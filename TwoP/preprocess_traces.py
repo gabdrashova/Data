@@ -1,7 +1,7 @@
 """Pre-process calcium traces extracted from tiff files."""
 import numpy as np
 from scipy import optimize
-from Data.TwoP.general import linearAnalyticalSolution
+from Data.TwoP.general import linear_analytical_solution
 import pandas as pd
 
 
@@ -86,15 +86,11 @@ def correct_neuropil(
 
     # Determines where the minimum normalised difference between F0 and N0.
     ti = np.nanargmin((F0 - N0) / N0, 0)
-    # Calculates the F at the 50th percentile.
-    lowActivity = np.nanpercentile(F, 50, 0)
     for iROI in range(nROIs):
         # TODO: verbose options
         # Adds the value of F0 at which point the difference between F and N
         # baselines is minimal.
 
-        # Fc[:, iROI] += F0[ti[iROI], iROI]
-        # Nc[:, iROI] += N0[ti[iROI], iROI]
         # Gets the current F and N trace.
         iN = Nc[:, iROI]
         iF = Fc[:, iROI]
@@ -134,19 +130,19 @@ def correct_neuropil(
         # Finds analytical solution to determine the correction factor
         # by fitting a robust line to the correlation of low values of F with
         # neuropil values.
-        a, b, mse = linearAnalyticalSolution(
+        a, b, mse = linear_analytical_solution(
             N_binValues[noNan, iROI], F_binValues[noNan, iROI], False
         )
 
         b = min(b, 2)
         b = max(b, 0)
-        # regPars[:, iROI] = res
+
         # Structures the intercept (a) and slope (b) values for each ROi into
         # an array.
         regPars[:, iROI] = (a, b)
 
         ## avoid over correction
-        # b = min(b, 1)
+
         # Calculates the corrected signal by multiplying the neuropil values by
         # the slope of the linear fit and subtracting this from F.
         corrected_sig = iF - (b * iN + a) + F0[:, iROI]
@@ -212,11 +208,6 @@ def correct_zmotion(F, zprofiles, ztrace, ignore_faults=True, metadata={}):
             ztrace, correctionFactor, signal, metadata
         )
     return signal
-
-
-# TODO
-def register_zaxis():
-    None
 
 
 # TODO
@@ -382,10 +373,6 @@ def remove_zcorrected_faults(ztrace, zprofiles, signals, metadata={}):
         # Adds the indices of the removed points to a dictionary.
         metadata["removedIndex"].append(np.where(np.isnan(signals))[0])
     return signals
-
-
-def _linear(x, a, b):
-    return a + b * x
 
 
 def zero_signal(F):

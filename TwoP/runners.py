@@ -465,7 +465,7 @@ def process_s2p_directory(
             # Specifies which plane each ROI belongs to.
             planes = np.append(planes, np.ones(res.shape[1]) * planeRange[i])
     # Specifies number to compare the length of the signals to.
-    minLength = 10**10
+    minLength = np.inf
     for i in range(len(signalList)):
         # Checks the minumum length of the signals for each plane.
         minLength = np.min((signalList[i].shape[0], minLength))
