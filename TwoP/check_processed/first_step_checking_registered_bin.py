@@ -21,7 +21,7 @@ for n in range(frames.shape[0]):
     length = np.sum(frames[0:n+1])
     all_exp[n] = length
 
-print("exp lengths: " + "\n" + str(all_exp))
+
 
 experiment_num = 2
 
@@ -33,20 +33,53 @@ for num in all_exp:
     num = int(num)
     range_str_end = f"{num - 100}-{num}"
     range_str_start = f"{num}-{num+100}"
-    range_tuple = (range_str_end, range_str_start)
-    ranges.append(range_tuple)
+    range_list = [range_str_end, range_str_start]
+    ranges.append(range_list)
 
-# Iterate through and print the derived ranges
-for i, range_str in enumerate(ranges):
-    print(f" {i}: {range_str}")
+# Initialize empty arrays
+start_slices = np.array([], dtype=int)
+end_slices = np.array([], dtype=int)
+
+for sublist in ranges:
+    if isinstance(sublist, list):
+        for item in sublist:
+            start, end = map(int, item.split('-'))
+            start_slices = np.append(start_slices, start)
+            end_slices = np.append(end_slices, end)
+
+# Add 1 to the start_slices array so it's 100 frames 
+# (conversion from ImageJ to Python numbering)
+start_slices += 1
+
+# Add 1 to the beginning of start_slices array
+start_slices = np.insert(start_slices, 0, 1)
+
+# Add 100 to the end of end_slices array
+end_slices = np.insert(end_slices,0, 100)
+
+
+# Print values from start_slices separated by commas
+print("Start Slices:")
+start_slices_str = ', '.join(map(str, start_slices))
+print(start_slices_str)
+
+# Print values from end_slices separated by commas
+print("\nEnd Slices:")
+end_slices_str = ', '.join(map(str, end_slices))
+print(end_slices_str)
 
 # creating folders where the average tiffs will be saved, calling it AVG_tiffs
 root_directory = ""+Drive+":\\"+Subfolder+"\\"+ animal+"\\"+date+"\\suite2p\\"
 
+
 for dirpath, dirnames, filenames in os.walk(root_directory):
     for dirname in dirnames:
-        # Create the "AVG_tiffs" folder within each subdirectory
-        avg_tiffs_folder = os.path.join(dirpath, dirname, "AVG_tiffs")
-        os.makedirs(avg_tiffs_folder, exist_ok=True)
+        subdirectory = os.path.join(dirpath, dirname)
+        
+        # Check if "data.bin" exists in the filenames within the subdirectory
+        if any("data.bin" in filename for filename in filenames):
+            # Create the "AVG_tiffs" folder if "data.bin" is present
+            avg_tiffs_folder = os.path.join(subdirectory, "AVG_tiffs")
+            os.makedirs(avg_tiffs_folder, exist_ok=True)
 
-print("AVG_tiffs folders created in all subdirectories.")
+print("\nAVG_tiffs folders created in all subdirectories.")
