@@ -58,7 +58,7 @@ def define_directories():
 
     # TODO: Make dictionary
     dataDefFile = "D:\\preprocess.csv"
-    preprocessedDataDir = "Z:/Suite2Pprocessedfiles/"
+    preprocessedDataDir = "D:\\Suite2Pprocessedfiles\\"
     zstackDir = "Z:\\RawData\\"
     metadataDir = "Z:\\RawData\\"
 

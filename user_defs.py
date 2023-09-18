@@ -59,8 +59,9 @@ def define_directories():
     """
 
     directoryDb = {
-        "dataDefFile": "D:\\preprocessBoutons.csv",
-        "preprocessedDataDir": "Z:/ProcessedData/",
+        "dataDefFile": "D:\\preprocess.csv",
+        # "preprocessedDataDir": "D://Suite2Pprocessedfiles//",
+        "preprocessedDataDir": "Z://ProcessedData//",
         "zstackDir": "Z:\\RawData\\",
         "metadataDir": "Z:\\RawData\\",
     }
@@ -104,7 +105,7 @@ def create_2p_processing_ops():
 
     """
     pops = {
-        "debug": False,
+        "debug": True,
         "plot": True,
         "f0_percentile": 8,
         "f0_window": 300,

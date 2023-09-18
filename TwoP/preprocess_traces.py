@@ -303,7 +303,7 @@ def get_delta_F_over_F(Fc, F0):
 
     """
     return (Fc - F0) / np.fmax(1, np.nanmean(F0, 0))
-
+    # return (Fc - F0) / np.fmax(1, F0)
 
 def remove_zcorrected_faults(ztrace, zprofiles, signals, metadata={}):
     """
