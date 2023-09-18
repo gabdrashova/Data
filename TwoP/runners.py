@@ -169,6 +169,11 @@ def _process_s2p_singlePlane(
             if not (os.path.exists(zFileName)):
                 zstack = register_zstack(
                     zstackPath, spacing=1, piezo=piezo, target_image=refImg, channel = ops['align_by_chan']
+                    zstackPath,
+                    spacing=1,
+                    piezo=piezo,
+                    target_image=refImg,
+                    channel=ops["align_by_chan"],
                 )
                 # Saves registered Z stack in the specified or default saveDir.
                 skimage.io.imsave(zFileName, zstack)
@@ -228,6 +233,7 @@ def _process_s2p_singlePlane(
         "zTrace": zTrace,
         "zCorr_stack": zcorr,
         "locs": cellLocs,
+        "cellId": np.where(isCell[0, :].astype(bool))[0],
     }
 
     if pops["plot"]:
@@ -448,6 +454,7 @@ def process_s2p_directory(
     zTraces = []
     zProfiles = []
     zCorrs = []
+    cellIds = []
     # Appends lists with the results for all the planes.
     for i in range(len(results)):
         if not (results[i] is None):
@@ -456,12 +463,13 @@ def process_s2p_directory(
             zTraces.append(results[i]["zTrace"])
             zProfiles.append(results[i]["zProfiles"])
             zCorrs.append(results[i]["zCorr_stack"])
+            cellIds.append(results[i]["cellId"])
             # Places the signal into an array.
             res = signalList[i]
             # Specifies which plane each ROI belongs to.
             planes = np.append(planes, np.ones(res.shape[1]) * planeRange[i])
     # Specifies number to compare the length of the signals to.
-    minLength = 10**10
+    minLength = np.inf
     for i in range(len(signalList)):
         # Checks the minumum length of the signals for each plane.
         minLength = np.min((signalList[i].shape[0], minLength))
@@ -482,10 +490,12 @@ def process_s2p_directory(
     zProfile = np.hstack(zProfiles)
     zTrace = np.vstack(zTraces)
     zCorrs = np.vstack(zCorrs)
+    cellIds = np.vstack(cellIds)
 
     # Saves the results as individual npy files.
     np.save(os.path.join(saveDirectory, "calcium.dff.npy"), signals)
     np.save(os.path.join(saveDirectory, "calcium.planes.npy"), planes)
+    np.save(os.path.join(saveDirectory, "calcium.Ids.npy"), cellIds)
     np.save(os.path.join(saveDirectory, "rois.xyz.npy"), locs)
     np.save(os.path.join(saveDirectory, "rois.zprofiles.npy"), zProfile)
     np.save(os.path.join(saveDirectory, "planes.zTrace"), zTrace)
@@ -1048,7 +1058,7 @@ def process_metadata_directory(
             np.hstack(velocity).reshape(-1, 1),
         )
         np.save(
-            os.path.join(saveDirectory, "face.timestamps.npy"),
+            os.path.join(saveDirectory, "eye.timestamps.npy"),
             np.hstack(faceTimes).reshape(-1, 1),
         )
         np.save(

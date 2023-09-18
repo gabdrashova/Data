@@ -282,7 +282,7 @@ def detect_wheel_move(
     risingEdgeA = risingEdgeA[moveA[risingEdgeA] == 1]
     risingEdgeA_B = moveB[risingEdgeA]
     counterA[risingEdgeA[risingEdgeA_B == 0]] = 1
-    # counterA[risingEdgeA[risingEdgeA_B == 1]] = -1
+    counterA[risingEdgeA[risingEdgeA_B == 1]] = -1
 
     # Detects B move.
     risingEdgeB = np.where(np.diff(moveB > 0, prepend=True))[
@@ -292,7 +292,7 @@ def detect_wheel_move(
     risingEdgeB = risingEdgeB[moveB[risingEdgeB] == 1]
     risingEdgeB_A = moveB[risingEdgeB]
     counterA[risingEdgeB[risingEdgeB_A == 0]] = -1
-    # counterA[risingEdgeB[risingEdgeB_A == 1]] = 1
+    counterA[risingEdgeB[risingEdgeB_A == 1]] = 1
 
     # Gets how much one move means in distance travelled.
 
@@ -307,12 +307,13 @@ def detect_wheel_move(
     tsKernel[0] = 1
     tsKernel[-1] = -1
 
-    # Takes window sum and converts it to cm.
-    distWindow = np.convolve(instDist, sumKernel, "same")
-    # Counts time elapsed.
-    timeElapsed = np.convolve(timestamps, tsKernel, "same")
-    # Calculates the velocity.
-    velocity = distWindow / timeElapsed
+    # Taking the difference and
+    distDiff = np.diff(distance)
+    velocity = (
+        sp.ndimage.gaussian_filter1d(distDiff, averagingTime / 2)
+        * averagingTime
+    )
+
     # if (plot):
     #     f,ax = plt.subplots(3,1,sharex=True)
     #     ax[0].plot(moveA)
@@ -869,29 +870,6 @@ def get_piezo_data(ops):
         piezo, frames, nt, imagingPlanes=nplanes
     )
     return planePiezo
-
-
-def get_ops_file(suite2pDir):
-    """
-    Loads the ops file from the combined folder in the suite2p folder. Ops file
-    is generated directly from suite2p.
-
-    Parameters
-    ----------
-    suite2pDir : str
-        The main directory where the suite2p folders are located.
-
-    Returns
-    -------
-    ops : dict
-        The suite2p ops dictionary.
-
-    """
-    combinedDir = glob.glob(os.path.join(suite2pDir, "combined*"))
-    ops = np.load(
-        os.path.join(combinedDir[0], "ops.npy"), allow_pickle=True
-    ).item()
-    return ops
 
 
 def get_recorded_video_times(di, searchTerms, cleanNames):

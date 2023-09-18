@@ -157,6 +157,18 @@ def create_ops_boutton_registration(filePath):
     return ops
 
 
+def create_fitting_ops():
+    ops = {
+        "debug": False,
+        "plot": True,
+        "active_quantile": 0.2,
+        "quiet_quantile": 0.01,
+        "save_dir": r"D:\saveloc",
+    }
+
+    return ops
+
+
 def directories_to_register():
     dirDefs = [
         # {
@@ -179,10 +191,41 @@ def directories_to_register():
         #     "Date": "2023-02-14",
         #     "Experiments": [2, 3, 4, 5, 6, 7],
         # },
-        {
-            "Name": "Janus",
-            "Date": "2023-02-22",
-            "Experiments": [1, 3, 4, 5, 6, 7],
-        },
+        # {
+        #     "Name": "Janus",
+        #     "Date": "2023-02-22",
+        #     "Experiments": [1, 3, 4, 5, 6, 7],
+        # },
     ]
     return pd.DataFrame(dirDefs)
+
+
+def directories_to_fit():
+    dirDefs = [
+        {
+            "Name": "Io",
+            "Date": "2023-02-13",
+            "SpecificNeurons": [1],
+        },
+        # {
+        #     "Name": "Io",
+        #     "Date": "2023-02-15",
+        # },
+        # {
+        #     "Name": "Io",
+        #     "Date": "2023-02-20",
+        # },
+        # {
+        #     "Name": "Io",
+        #     "Date": "2023-05-22",
+        # },
+        # {
+        #     "Name": "Janus",
+        #     "Date": "2023-02-14",
+        # },
+        # {
+        #     "Name": "Janus",
+        #     "Date": "2023-02-22",
+        # },
+    ]
+    return dirDefs
