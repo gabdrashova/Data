@@ -1,9 +1,8 @@
 # Checking registration and stability
 ## Step by step guide
-1.Open the python script called "first_step_checking_registered_bin". In there you should change the name, date, processed data location etc
-2.It will give you a list of the frames from the binary that should be compared. Note it gives the start frames and end frames for each interval.
-3. Open ImageJ and go to File>Open>check_bin.ijm. Here you can copy and paste the start and end slice frames into the variables start_slices and end_slices respectively. 
-Note before running the code, check how much memory you have alocated to ImageJ (especially important for very big binary files) Go to Edit>Options>Memory&Threads. If this is less than the size of the binary, you will get an error
+1. Open the python script called "first_step_checking_registered_bin". In there you should change the name, date, processed data location etc
+2. It will give you a list of the frames from the binary that should be compared. Note it gives the start frames and end frames for each interval.
+3. Open ImageJ and go to File>Open>check_bin.ijm. Here you can copy and paste the start and end slice frames into the variables start_slices and end_slices respectively. **Note** before running the code, check how much memory you have alocated to ImageJ (especially important for very big binary files) Go to Edit>Options>Memory&Threads. If this is less than the size of the binary, you will get an error
 4. Also change the usual (animal, date, etc). 
 5. Now just press run and wait for the binay to load
 6. Once the binary has loaded, check it for the quality of the registration.
