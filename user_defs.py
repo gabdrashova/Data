@@ -60,8 +60,8 @@ def define_directories():
 
     directoryDb = {
         "dataDefFile": "D:\\preprocess.csv",
-        # "preprocessedDataDir": "D://Suite2Pprocessedfiles//",
-        "preprocessedDataDir": "Z://ProcessedData//",
+        "preprocessedDataDir": "D://Suite2Pprocessedfiles//",
+        #"preprocessedDataDir": "Z://ProcessedData//",
         "zstackDir": "Z:\\RawData\\",
         "metadataDir": "Z:\\RawData\\",
     }

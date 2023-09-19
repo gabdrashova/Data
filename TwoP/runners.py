@@ -202,7 +202,7 @@ def _process_s2p_singlePlane(
                 zstack,
                 neuropil_correction=regPars[1, :],
                 metadata=processing_metadata,
-                smooting_factor=2,
+                smoothing_factor=2,
             )
             # Corrects traces for z motion based on the Z profiles.
             Fcz = correct_zmotion(
