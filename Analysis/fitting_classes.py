@@ -53,7 +53,7 @@ import inspect
 
 
 # a base class for all fitting classes
-class TunerBase(ABC):
+class BaseTuner(ABC):
 
     # separator between groups
     sep = None
@@ -203,7 +203,11 @@ class TunerBase(ABC):
                 preds = self.predict(x)
             else:
                 preds = np.ones_like(x) * np.nan
-            self.fitScore = self.score(preds, y)
+            if not np.any(np.isnan(props)):
+                self.fitScore = self.score(preds, y)
+            else:
+                print("could not fit")
+                self.fitScore = 0
         return props
 
     def predict_constant(self, x, y):
@@ -214,7 +218,7 @@ class TunerBase(ABC):
         preds = np.ones_like(y) * np.nan
         p0, bounds = self.set_bounds_p0(x, y)
         for i in range(N):
-            preds[i] = np.nanmean(np.delete(y, i))
+            preds[i] = np.nanmean(np.delete(y, i, axis=0))
         R2 = self.score(preds, y)
         return R2
 
@@ -246,7 +250,11 @@ class TunerBase(ABC):
                 if not (self.sep is None):
                     self.sep -= 1
                 props = self.fit_(
-                    np.delete(x, i), np.delete(y, i), self.func, p0, bounds
+                    x[np.setdiff1d(range(x.shape[0]), i)],
+                    y[np.setdiff1d(range(y.shape[0]), i)],
+                    self.func,
+                    p0,
+                    bounds,
                 )
                 if not (self.sep is None):
                     self.sep += 1
@@ -406,9 +414,9 @@ class TunerBase(ABC):
 
 
 # fit using log - gaussian
-class FrequencyTuner(TunerBase):
+class FrequencyTuner(BaseTuner):
     def __init__(self, funcName, sep=None):
-        TunerBase.__init__(self, sep)
+        BaseTuner.__init__(self, sep)
         self.set_function(funcName)
 
     # parameters: name of function
@@ -564,9 +572,9 @@ class FrequencyTuner(TunerBase):
 
 
 # fit using warpped gaussian estimate
-class OriTuner(TunerBase):
+class OriTuner(BaseTuner):
     def __init__(self, funcName, sep=None):
-        TunerBase.__init__(self, sep)
+        BaseTuner.__init__(self, sep)
         self.set_function(funcName)
 
     # parameters: name of function
@@ -745,9 +753,9 @@ class OriTuner(TunerBase):
 
 
 # fit using hyperbolic ratio function
-class ContrastTuner(TunerBase):
+class ContrastTuner(BaseTuner):
     def __init__(self, funcName, sep=None):
-        TunerBase.__init__(self, sep)
+        BaseTuner.__init__(self, sep)
         self.set_function(funcName)
 
     def set_function(self, *args):
@@ -887,3 +895,346 @@ class ContrastTuner(TunerBase):
             return np.append(yq, ya)
         else:
             return np.nan
+
+
+class GammaTuner(BaseTuner):
+    def __init__(self, funcName, sep=None):
+        BaseTuner.__init__(self, sep)
+        self.set_function(funcName)
+
+    def set_function(self, *args):
+        if args[0] == "gamma":
+            self.func = self.gamma
+        if args[0] == "gamma_split":
+            self.func = self.gamma_split
+
+    def _make_prelim_guess(self, x, y):
+        # get average per ori
+        xu = np.unique(x)
+        avgy = np.zeros_like(xu, dtype=float)
+        for xi, xuu in enumerate(xu):
+            avgy[xi] = np.nanmean(y[x == xuu])
+        return (np.nanmin(avgy), np.nanmax(avgy), 1, xu[np.argmax(avgy)], 1)
+
+    def set_bounds_p0(self, x, y, func=None):
+
+        p0 = self._make_prelim_guess(x, y)
+        bounds = (
+            (np.nanmin(y), np.nanmin(y), 0.1, 0.1, 1),
+            (np.nanmax(y), np.nanmax(y), np.inf, np.inf, 10),
+        )
+        if ((func is None) & (self.func == self.gamma)) | (
+            (not (func is None)) & (func == self.gamma)
+        ):
+            return p0, bounds  # just take default params
+
+        if ((func is None) & (self.func == self.gamma_split)) | (
+            (not (func is None)) & (func == self.gamma_split)
+        ):
+            try:
+
+                meanVals = pd.DataFrame({"x": x, "y": y}).groupby("x").mean()
+                x_mean = meanVals.index.to_numpy()
+                y_mean = meanVals["y"].to_numpy()
+                p0_, _ = sp.optimize.curve_fit(
+                    self.gamma,
+                    x_mean,
+                    y_mean,
+                    p0=p0,
+                    bounds=bounds,
+                    xtol=self.xtol,
+                    max_nfev=self.max_nfev,
+                    method="trf",
+                    loss="soft_l1",
+                    f_scale=1,
+                )
+
+                # p0_, _ = sp.optimize.curve_fit(
+                #     self.wrapped_gauss,
+                #     x,
+                #     y,
+                #     p0=p0,
+                #     bounds=bounds,
+                #     xtol=self.xtol,
+                #     max_nfev=self.max_nfev,
+                #     method="trf",
+                #     loss="soft_l1",
+                #     f_scale=1,
+                # )
+
+                p0 = (
+                    p0_[0],
+                    p0_[0],
+                    p0_[1],
+                    p0_[1],
+                    p0_[2],
+                    p0_[2],
+                    p0_[3],
+                    p0_[3],
+                    p0_[4],
+                    p0_[4],
+                )
+
+                bounds = (
+                    (
+                        np.nanmin(y),
+                        np.nanmin(y),
+                        np.nanmin(y),
+                        np.nanmin(y),
+                        0.01,
+                        0.01,
+                        0.01,
+                        0.01,
+                        1,
+                        1,
+                    ),
+                    (
+                        np.nanmax(y),
+                        np.nanmax(y),
+                        np.nanmax(y),
+                        np.nanmax(y),
+                        np.inf,
+                        np.inf,
+                        np.inf,
+                        np.inf,
+                        np.inf,
+                        np.inf,
+                    ),
+                )
+            except:
+                p0 = (
+                    p0[0],
+                    p0[0],
+                    p0[1],
+                    p0[1],
+                    p0[2],
+                    p0[2],
+                    p0[3],
+                    p0[3],
+                    p0[4],
+                    p0[4],
+                )
+
+                bounds = (
+                    (
+                        np.nanmin(y),
+                        np.nanmin(y),
+                        np.nanmin(y),
+                        np.nanmin(y),
+                        0.01,
+                        0.01,
+                        0.01,
+                        0.01,
+                        1,
+                        1,
+                    ),
+                    (
+                        np.nanmax(y),
+                        np.nanmax(y),
+                        np.nanmax(y),
+                        np.nanmax(y),
+                        np.inf,
+                        np.inf,
+                        np.inf,
+                        np.inf,
+                        np.inf,
+                        np.inf,
+                    ),
+                )
+            return p0, bounds
+
+    def predict_split(self, x, state):
+        if state == 0:
+            return self.gamma(x, *self.props[[0, 2, 4, 6, 8]])
+        else:
+            return self.gamma(x, *self.props[[1, 3, 5, 7, 9]])
+
+    def gamma(self, s, r0, A, a, tau, n):
+        # r0 = np.float32(r0)
+        # A = np.float32(A)
+        # a = np.float32(a)
+        n = int(n)
+        res = r0 + A * (
+            (((a * (s - tau)) ** n) * np.exp(-a * (s - tau)))
+            / ((n**n) * np.exp(-n))
+        )
+
+        return res
+
+    def gamma_split(self, s, r0q, r0a, Aq, Aa, aq, aa, tauq, taua, nq, na):
+        sep = self.sep
+        # have one state only to predict
+        if len(np.atleast_1d(c)) == 1:
+            if self.state <= sep:
+                # quiet
+                y = self.gamma(s, r0q, Aq, aq, tauq, nq)
+            else:
+                # active
+                y = self.gamma(s, r0a, Aa, aa, taua, na)
+            return y
+
+        if not (sep is None):
+            quiet = c[:sep]
+            active = c[sep:]
+            yq = self.gamma(s, r0q, Aq, aq, tauq, nq)
+            ya = self.gamma(s, r0a, Aa, aa, taua, na)
+            return np.append(yq, ya)
+        else:
+            return np.nan
+
+        return res
+
+
+class Gauss2DTuner(BaseTuner):
+    def __init__(self, funcName, bestSpot, sep=None):
+        BaseTuner.__init__(self, sep)
+        self.set_function(funcName)
+        self.maxSpot = bestSpot
+
+    def set_function(self, *args):
+        if args[0] == "gauss":
+            self.func = self.gauss_2d
+        if args[0] == "gauss_split":
+            self.func = self.gauss2d_split
+
+    def _make_prelim_guess(self, x, y):
+        # get average per ori
+        xdiff = np.nanmin(np.diff(np.unique(x[:, 0])))
+        ydiff = np.nanmin(np.diff(np.unique(x[:, 1])))
+
+        df = pd.DataFrame({"x": x[:, 0], "y": x[:, 1], "resp": y})
+        means = df.groupby(["x", "y"]).mean().reset_index()
+        maxValInd = np.argmax(means["resp"])
+        maxVal = means.iloc[maxValInd]["resp"]
+        maxX = means.iloc[maxValInd]["x"]
+        maxY = means.iloc[maxValInd]["y"]
+        p0 = (
+            maxVal,
+            maxX,
+            maxY,
+            xdiff,
+            ydiff,
+            0,
+            0,
+        )
+        return p0
+
+    def set_bounds_p0(self, x, y, func=None):
+
+        p0 = self._make_prelim_guess(x, y)
+        bounds = (
+            (
+                -np.inf,
+                np.nanmin(x[:, 0]),  # self.maxSpot[1] - 2,
+                np.nanmin(x[:, 1]),  # self.maxSpot[0] - 2,
+                p0[3] / 2,
+                p0[4] / 2,
+                0,
+                -np.inf,
+            ),
+            (
+                np.inf,
+                np.nanmax(x[:, 0]),  # self.maxSpot[1] + 2,
+                np.nanmax(x[:, 1]),  # self.maxSpot[0] + 2,
+                np.inf,
+                np.inf,
+                np.pi,
+                np.inf,
+            ),
+        )
+
+        if ((func is None) & (self.func == self.gauss_2d)) | (
+            (not (func is None)) & (func == self.gauss_2d)
+        ):
+            return p0, bounds  # just take default params
+
+        if ((func is None) & (self.func == self.gauss_2d_split)) | (
+            (not (func is None)) & (func == self.gauss_2d_split)
+        ):
+
+            p0 = (
+                p0[0],
+                p0[0],
+                p0[1],
+                p0[2],
+                p0[3],
+                p0[3],
+                p0[4],
+                p0[4],
+                p0[5],
+                p0[6],
+                p0[6],
+            )
+
+            bounds = (
+                (
+                    bounds[0][0],
+                    bounds[0][0],
+                    bounds[0][1],
+                    bounds[0][2],
+                    bounds[0][3],
+                    bounds[0][3],
+                    bounds[0][4],
+                    bounds[0][4],
+                    bounds[0][5],
+                    bounds[0][6],
+                    bounds[0][6],
+                ),
+                (
+                    bounds[1][0],
+                    bounds[1][0],
+                    bounds[1][1],
+                    bounds[1][2],
+                    bounds[1][3],
+                    bounds[1][3],
+                    bounds[1][4],
+                    bounds[1][4],
+                    bounds[1][5],
+                    bounds[1][6],
+                    bounds[1][6],
+                ),
+            )
+            return p0, bounds
+
+    def predict_split(self, x, state):
+        if state == 0:
+            return self.gauss_2d(x, *self.props[[0, 2, 3, 4, 6, 8, 9]])
+        else:
+            return self.gauss_2d(x, *self.props[[1, 2, 3, 5, 7, 8, 10]])
+
+    def gauss_2d(self, cors, A, xo, yo, a, b, theta, G):
+        cors = np.atleast_2d(cors)
+        x = cors[:, 0]
+        y = cors[:, 1]
+        xx = (x - xo) * np.cos(theta) - (y - yo) * np.sin(theta)
+        yy = (x - xo) * np.sin(theta) + (y - yo) * np.cos(theta)
+
+        res = G + (A) * np.exp(
+            -(((xx) ** 2) / (2 * a**2) + ((yy) ** 2) / (2 * b**2))
+        )
+        return res
+
+    def gauss_2d_split(
+        self, cors, Aq, Aa, xo, yo, aq, aa, bq, ba, theta, Gq, Ga
+    ):
+        sep = self.sep
+        # have one state only to predict
+        if len(np.atleast_1d(c)) == 1:
+            if self.state <= sep:
+                # quiet
+                y = self.gauss_2d(cors, Aq, xo, yo, aq, bq, theta, Gq)
+            else:
+                # active
+                y = self.gauss_2d(s, Aa, xo, yo, aa, ba, theta, Ga)
+            return y
+
+        if not (sep is None):
+            quiet = c[:sep]
+            active = c[sep:]
+            yq = self.gauss_2d(cors, Aq, xo, yo, aq, bq, theta, Gq)
+            ya = self.gauss_2d(s, Aa, xo, yo, aa, ba, theta, Ga)
+            return np.append(yq, ya)
+        else:
+            return np.nan
+
+        return res

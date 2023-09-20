@@ -308,8 +308,8 @@ def run_tests(
             p_split = sp.stats.percentileofscore(
                 dist, tunerSplit.auc_diff(df[x_name].to_numpy())
             )
-            if p_split > 50:
-                p_split = 100 - p_split
+            # if p_split > 50:
+            p_split = 100 - p_split
             p_split = p_split / 100
         else:
             p_split = np.nan
@@ -467,7 +467,7 @@ def load_grating_data(directory):
         "planes": "calcium.planes.npy",
         "planeDelays": "planes.delay.npy",
         "calTs": "calcium.timestamps.npy",
-        "faceTs": "face.timestamps.npy",
+        "faceTs": "eye.timestamps.npy",
         "gratingsContrast": "gratings.contrast.npy",
         "gratingsOri": "gratings.ori.npy",
         "gratingsEt": "gratings.et.npy",
@@ -479,6 +479,33 @@ def load_grating_data(directory):
         "wheelVelocity": "wheel.velocity.npy",
     }
 
+    # check if an update exists
+    if os.path.exists(os.path.join(directory, "gratings.st.updated.npy")):
+        fileNameDic["gratingsSt"] = "gratings.st.updated.npy"
+
+    if os.path.exists(os.path.join(directory, "gratings.et.updated.npy")):
+        fileNameDic["gratingsEt"] = "gratings.et.updated.npy"
+    data = {}
+    for key in fileNameDic.keys():
+        data[key] = np.load(os.path.join(directory, fileNameDic[key]))
+    return data
+
+
+def load_circle_data(directory):
+    fileNameDic = {
+        "sig": "calcium.dff.npy",
+        "planes": "calcium.planes.npy",
+        "planeDelays": "planes.delay.npy",
+        "calTs": "calcium.timestamps.npy",
+        "faceTs": "eye.timestamps.npy",
+        "wheelTs": "wheel.timestamps.npy",
+        "wheelVelocity": "wheel.velocity.npy",
+        "circlesSt": "circles.st.npy",
+        "circlesX": "circles.x.npy",
+        "circlesY": "circles.y.npy",
+        "circlesDiameter": "circles.diameter.npy",
+        "circlesIsWhite": "circles.isWhite.npy",
+    }
     # check if an update exists
     if os.path.exists(os.path.join(directory, "gratings.st.updated.npy")):
         fileNameDic["gratingsSt"] = "gratings.st.updated.npy"
