@@ -9,8 +9,8 @@ import os
 Drive = "Z"
 Subfolder = "ProcessedData" 
 #Subfolder = "Suite2Pprocessedfiles" 
-animal = "Lotho"
-date = "2023-04-12"
+animal = "Glaucus"
+date = "2022-08-18"
 
 Directory = ""+Drive+":\\"+Subfolder+"\\"+ animal+"\\"+date+"\\suite2p\\combined\\"
 ops = np.load(os.path.join(Directory, "ops.npy"), allow_pickle = True)
@@ -22,8 +22,6 @@ for n in range(frames.shape[0]):
     all_exp[n] = length
 
 
-
-experiment_num = 2
 
 # Initialize the first range as "0-100"
 ranges = ["0-100"]
