@@ -9,8 +9,8 @@ import os
 Drive = "Z"
 Subfolder = "ProcessedData" 
 #Subfolder = "Suite2Pprocessedfiles" 
-animal = "Lotho"
-date = "2023-04-12"
+animal = "Ladon"
+date = "2023-04-17"
 
 Directory = ""+Drive+":\\"+Subfolder+"\\"+ animal+"\\"+date+"\\suite2p\\combined\\"
 ops = np.load(os.path.join(Directory, "ops.npy"), allow_pickle = True)
@@ -68,18 +68,22 @@ print("\nEnd Slices:")
 end_slices_str = ', '.join(map(str, end_slices))
 print(end_slices_str)
 
-# creating folders where the average tiffs will be saved, calling it AVG_tiffs
+#%%   
 root_directory = ""+Drive+":\\"+Subfolder+"\\"+ animal+"\\"+date+"\\suite2p\\"
 
-
-for dirpath, dirnames, filenames in os.walk(root_directory):
+for dirpath, dirnames,filenamez in os.walk(root_directory):
     for dirname in dirnames:
-        subdirectory = os.path.join(dirpath, dirname)
         
+        for dirp, dirr, filenames in os.walk(dirpath):
+            # Check if the current directory name is "AVG_tiffs"
+            if dirname != "AVG_tiffs":
         # Check if "data.bin" exists in the filenames within the subdirectory
-        if any("data.bin" in filename for filename in filenames):
-            # Create the "AVG_tiffs" folder if "data.bin" is present
-            avg_tiffs_folder = os.path.join(subdirectory, "AVG_tiffs")
-            os.makedirs(avg_tiffs_folder, exist_ok=True)
+                if any("data.bin" in filename for filename in filenames):
+                # Create the "AVG_tiffs" folder within each subdirectory
+                    avg_tiffs_folder = os.path.join(dirpath, dirname, "AVG_tiffs")
+                    if not os.path.exists(avg_tiffs_folder):
+                        os.makedirs(avg_tiffs_folder, exist_ok=True)
+                        print("\nAVG_tiffs folders now created in all subdirectories.")
+                
 
-print("\nAVG_tiffs folders created in all subdirectories.")
+

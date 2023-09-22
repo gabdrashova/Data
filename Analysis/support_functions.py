@@ -410,16 +410,18 @@ def run_complete_analysis(
         res_ori = run_tests(
             OriTuner, "gauss", "gauss_split", df, "movement", "ori", "avg"
         )
+        
+    else:
+        res_ori = make_empty_results("Ori")
+    #### run Tf
+    if runTf:
         # Temporal Frequency tests
         df = dfAll[
             (dfAll.sf == 0.08)
             & (dfAll.contrast == 1)
             & (np.isin(dfAll.ori, [0, 90, 180, 270]))
         ]
-    else:
-        res_ori = make_empty_results("Ori")
-    #### run Tf
-    if runTf:
+        
         df = filter_nonsig_orientations(df, criterion=0.05)
         res_freq = run_tests(
             FrequencyTuner, "gauss", "gauss_split", df, "movement", "tf", "avg"
