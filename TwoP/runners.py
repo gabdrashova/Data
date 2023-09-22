@@ -481,7 +481,7 @@ def process_s2p_directory(
         if not zTraces[i] is None:
             # Updates the zTraces to only include frames until the minimum
             # length determined above.
-            zTraces[i] = zTraces[i][:minLength]
+            zTraces[i] = zTraces[i][:int(minLength)]
     # Combines results from each plane into a single array for signals,
     # locations, zProfile and zTrace.
     signals = np.hstack(signalList)
