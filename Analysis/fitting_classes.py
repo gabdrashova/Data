@@ -213,6 +213,27 @@ class BaseTuner(ABC):
     def predict_constant(self, x, y):
         return np.nanmean(y)
 
+    def split_cv(self, x, y, split=0.3):
+        N = len(x)
+        p0, bounds = self.set_bounds_p0(x, y)
+        X_train, X_test, y_train, y_test = train_test_split(
+            x, y, test_size=0.30
+        )
+        props = self.fit_(X_train, y_train, self.func, p0, bounds)
+        preds = self.func(X_test, *props)
+        R2 = self.score(preds, y_test)
+        return R2
+
+    def split_cv_constant(self, x, y, split=0.3):
+        N = len(x)
+        p0, bounds = self.set_bounds_p0(x, y)
+        X_train, X_test, y_train, y_test = train_test_split(
+            x, y, test_size=0.30
+        )
+        preds = np.repeat(np.nanmean(y_test), len(y_test))
+        R2 = self.score(preds, y_test)
+        return R2
+
     def loo_constant(self, x, y):
         N = len(x)
         preds = np.ones_like(y) * np.nan
@@ -921,7 +942,7 @@ class GammaTuner(BaseTuner):
         p0 = self._make_prelim_guess(x, y)
         bounds = (
             (np.nanmin(y), np.nanmin(y), 0.1, 0.1, 1),
-            (np.nanmax(y), np.nanmax(y), np.inf, np.inf, 10),
+            (np.nanmax(y), np.nanmax(y), np.inf, np.inf, np.inf),
         )
         if ((func is None) & (self.func == self.gamma)) | (
             (not (func is None)) & (func == self.gamma)
@@ -1106,8 +1127,8 @@ class Gauss2DTuner(BaseTuner):
         means = df.groupby(["x", "y"]).mean().reset_index()
         maxValInd = np.argmax(means["resp"])
         maxVal = means.iloc[maxValInd]["resp"]
-        maxX = means.iloc[maxValInd]["x"]
-        maxY = means.iloc[maxValInd]["y"]
+        maxX = self.maxSpot[1]  # means.iloc[maxValInd]["x"]
+        maxY = self.maxSpot[0]  # means.iloc[maxValInd]["y"]
         p0 = (
             maxVal,
             maxX,
@@ -1124,22 +1145,22 @@ class Gauss2DTuner(BaseTuner):
         p0 = self._make_prelim_guess(x, y)
         bounds = (
             (
-                -np.inf,
+                0,
                 np.nanmin(x[:, 0]),  # self.maxSpot[1] - 2,
                 np.nanmin(x[:, 1]),  # self.maxSpot[0] - 2,
-                p0[3] / 2,
-                p0[4] / 2,
+                0.5,
+                0.5,
                 0,
-                -np.inf,
+                0,
             ),
             (
-                np.inf,
+                1,
                 np.nanmax(x[:, 0]),  # self.maxSpot[1] + 2,
                 np.nanmax(x[:, 1]),  # self.maxSpot[0] + 2,
                 np.inf,
                 np.inf,
                 np.pi,
-                np.inf,
+                1,
             ),
         )
 

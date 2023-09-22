@@ -61,7 +61,7 @@ def define_directories():
     directoryDb = {
         "dataDefFile": "D:\\preprocess.csv",
         "preprocessedDataDir": "D://Suite2Pprocessedfiles//",
-        #"preprocessedDataDir": "Z://ProcessedData//",
+        # "preprocessedDataDir": "Z://ProcessedData//",
         "zstackDir": "Z:\\RawData\\",
         "metadataDir": "Z:\\RawData\\",
     }
@@ -201,31 +201,35 @@ def directories_to_register():
 
 
 def directories_to_fit():
+    # boutons
+    # dirDefs = [
+    #     {
+    #         "Name": "Io",
+    #         "Date": "2023-02-13",
+    #         "SpecificNeurons": [],
+    #     },
+    #     {"Name": "Io", "Date": "2023-02-15", "SpecificNeurons": []},
+    #     {"Name": "Io", "Date": "2023-02-20", "SpecificNeurons": []},
+    #     # {"Name": "Io", "Date": "2023-05-22", "SpecificNeurons": []},
+    #     {"Name": "Janus", "Date": "2023-02-14", "SpecificNeurons": []},
+    #     {"Name": "Janus", "Date": "2023-02-22", "SpecificNeurons": []},
+    # ]
+
+    # neurons
     dirDefs = [
-        {
-            "Name": "Io",
-            "Date": "2023-02-13",
-            "SpecificNeurons": [1],
-        },
+        {"Name": "Giuseppina", "Date": "2023-01-24", "SpecificNeurons": []},
+        #### to much running
+        {"Name": "Giuseppina", "Date": "2023-01-06", "SpecificNeurons": []},
+        # weird updated file for both below
+        {"Name": "Ladon", "Date": "2023-04-17", "SpecificNeurons": []},
+        {"Name": "Lotho", "Date": "2023-04-18", "SpecificNeurons": []},
         # {
-        #     "Name": "Io",
-        #     "Date": "2023-02-15",
+        #     "Name": "Lotho",
+        #     "Date": "2023-04-20",
         # },
-        # {
-        #     "Name": "Io",
-        #     "Date": "2023-02-20",
-        # },
-        # {
-        #     "Name": "Io",
-        #     "Date": "2023-05-22",
-        # },
-        # {
-        #     "Name": "Janus",
-        #     "Date": "2023-02-14",
-        # },
-        # {
-        #     "Name": "Janus",
-        #     "Date": "2023-02-22",
-        # },
+        # done
+        {"Name": "Ladon", "Date": "2023-07-07", "SpecificNeurons": []},
+        {"Name": "Giuseppina", "Date": "2023-01-06", "SpecificNeurons": []},
+        {"Name": "Lotho", "Date": "2023-04-12", "SpecificNeurons": []},
     ]
     return dirDefs

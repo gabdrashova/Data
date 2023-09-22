@@ -477,7 +477,7 @@ def process_s2p_directory(
         # length determined above.
         # This is done to discard any additional frames that were recorded for
         # some planes but not all.
-        signalList[i] = signalList[i][:minLength, :]
+        signalList[i] = signalList[i][: int(minLength), :]
         if not zTraces[i] is None:
             # Updates the zTraces to only include frames until the minimum
             # length determined above.
