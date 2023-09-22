@@ -489,7 +489,7 @@ def process_s2p_directory(
     zProfile = np.hstack(zProfiles)
     zTrace = np.vstack(zTraces)
     zCorrs = np.vstack(zCorrs)
-    cellIds = np.vstack(cellIds)
+    cellIds = np.hstack(cellIds)
 
     # Saves the results as individual npy files.
     np.save(os.path.join(saveDirectory, "calcium.dff.npy"), signals)
