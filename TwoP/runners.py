@@ -508,7 +508,7 @@ def process_s2p_directory(
 # bonsai + arduino
 # TODO: comment
 def process_metadata_directory(
-    bonsai_dir, ops, pops=create_2p_processing_ops, saveDirectory=None
+    bonsai_dir, ops, pops=create_2p_processing_ops(), saveDirectory=None
 ):
     """
 
@@ -1219,7 +1219,7 @@ def read_directory_dictionary(dataEntry, s2pDirectory):
     # The data from each  dataEntry column is placed into variables.
     name = dataEntry.Name
     date = dataEntry.Date
-    experiments = dataEntry.Experiments
+    experiments = np.atleast_1d(dataEntry.Experiments)
 
     # Joins suite2p directory with the name and the date.
     s2pDirectory = os.path.join(s2pDirectory, name, date)

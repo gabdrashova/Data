@@ -652,7 +652,7 @@ def arduino_delay_compensation(
 
             if lenDif > 0:
                 x = x[:-lenDif]
-            a_, b_, mse = linearAnalyticalSolution(x, y)
+            a_, b_, mse = linear_analytical_solution(x, y)
             mses.append(mse)
             a_list.append(a_)
             b_list.append(b_)
@@ -692,7 +692,7 @@ def arduino_delay_compensation(
             x = ardChangeTime[i : np.min([len(ardChangeTime), i + batchSize])]
             y = niChangeTime[i : np.min([len(ardChangeTime), i + batchSize])]
 
-            a, b, mse = linearAnalyticalSolution(x, y)
+            a, b, mse = linear_analytical_solution(x, y)
 
             ind = np.where((newArdTimes >= lastPoint))[0]
             newArdTimes[ind] = b * newArdTimes[ind] + a
