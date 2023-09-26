@@ -488,7 +488,7 @@ def process_s2p_directory(
         if not zTraces[i] is None:
             # Updates the zTraces to only include frames until the minimum
             # length determined above.
-            zTraces[i] = zTraces[i][:minLength]
+            zTraces[i] = zTraces[i][:int(minLength)]
     # Combines results from each plane into a single array for signals,
     # locations, zProfile and zTrace.
     signals = np.hstack(signalList)
@@ -496,7 +496,7 @@ def process_s2p_directory(
     zProfile = np.hstack(zProfiles)
     zTrace = np.vstack(zTraces)
     zCorrs = np.vstack(zCorrs)
-    cellIds = np.vstack(cellIds)
+    cellIds = np.hstack(cellIds)
 
     # Saves the results as individual npy files.
     np.save(os.path.join(saveDirectory, "calcium.dff.npy"), signals)

@@ -47,6 +47,7 @@ from statsmodels.tsa.stattools import acf
 from statsmodels.stats.multicomp import pairwise_tukeyhsd
 import statsmodels.formula.api as smf
 
+# note: probably need to set your path if this gives a ModuleNotFoundError
 from alignment_functions import get_calcium_aligned
 from support_functions import (
     load_grating_data,
@@ -60,19 +61,21 @@ from abc import ABC, abstractmethod
 import inspect
 
 #%%
+# Note: go to user_defs and change the inputs to directories_to_fit() and create_fitting_ops().
 sessions = directories_to_fit()
 
 ops = create_fitting_ops()
-
+# Loads the save directory from the fitting_ops in user_defs.
 saveDir = ops["save_dir"]
 for currSession in sessions:
 
     print(f"starting to run session: {currSession}")
-    # get data for current session
+    # Gets data for current session from the Preprocessed folder.
     di = get_directory_from_session("Z:\\ProcessedData\\", currSession)
+    # Creates a dictionary with all the output from main_preprocess. 
     data = load_grating_data(di)
 
-    # make save dir for later
+    # Makes save dir for later.
     if not os.path.isdir(saveDir):
         os.makedirs(saveDir)
 
@@ -125,6 +128,7 @@ for currSession in sessions:
 
     fittingRange = range(0, gratingRes.shape[-1])
     # check if want to run only some neurons
+    
     if len(currSession["SpecificNeurons"]) > 0:
         fittingRange = currSession["SpecificNeurons"]
         # assume to wants to redo only those, so try reloading existing data first
@@ -167,7 +171,7 @@ for currSession in sessions:
     for n in fittingRange:
 
         sig, res_ori, res_freq, res_spatial, res_con = run_complete_analysis(
-            gratingRes, data, ts, quietI, activeI, n
+            gratingRes, data, ts, quietI, activeI, n,False,True,False,False
         )
 
         respP[n] = sig[0]
