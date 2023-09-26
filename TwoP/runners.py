@@ -146,6 +146,13 @@ def _process_s2p_singlePlane(
     F0 = get_F0(
         Fc, fs, prctl_F=pops["f0_percentile"], window_size=pops["f0_window"]
     )
+    F02 = get_F0(
+        Fc,
+        fs,
+        prctl_F=pops["f0_percentile"],
+        window_size=pops["f0_window"],
+        framesPerFolder=ops["frames_per_folder"],
+    )
     # Calculates delta F oer F given the corrected neuropil traces and the
     # baseline fluorescence.
     dF = get_delta_F_over_F(Fc, F0)

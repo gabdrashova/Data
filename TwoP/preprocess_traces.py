@@ -211,7 +211,9 @@ def correct_zmotion(F, zprofiles, ztrace, ignore_faults=True, metadata={}):
 
 
 # TODO
-def get_F0(Fc, fs, prctl_F=8, window_size=60, verbose=True):
+def get_F0(
+    Fc, fs, prctl_F=8, window_size=60, framesPerFolder=[], verbose=True
+):
     """
     Determines the baseline fluorescence to use for computing deltaF/F.
 
@@ -226,6 +228,9 @@ def get_F0(Fc, fs, prctl_F=8, window_size=60, verbose=True):
         The percentile from which to take F0. The default is 8.
     window_size : int, optional
         The rolling window over which to calculate F0. The default is 60.
+    framesPerFolder : [frames], optional
+        an array with the number of frames in each experiment. if not empty
+        then  gets individual F0 for each experiment. default is empty.
     verbose : bool, optional
         Whether or not to provide detailed processing information.
         The default is True.
@@ -236,11 +241,25 @@ def get_F0(Fc, fs, prctl_F=8, window_size=60, verbose=True):
         The baseline fluorescence (F0) traces for each ROI.
 
     """
-    # Translates the window size from seconds into frames.
-    window_size = int(round(fs * window_size))
-
     # Creates an array with the shape of Fc where the F0 values will be placed.
     F0 = np.zeros_like(Fc)
+
+    # make a different F0 per experiment
+    if len(framesPerFolder) > 0:
+        lastFrame = 0
+        for lf in framesPerFolder:
+            F0t = get_F0(
+                Fc[lastFrame : lastFrame + lf, :],
+                fs,
+                prctl_F,
+                window_size,
+                [],
+                verbose,
+            )
+            F0[lastFrame : lastFrame + lf, :] = F0t
+
+    # Translates the window size from seconds into frames.
+    window_size = int(round(fs * window_size))
 
     Fc_pd = pd.DataFrame(Fc)
 
@@ -276,6 +295,7 @@ def get_delta_F_over_F(Fc, F0):
     """
     return (Fc - F0) / np.fmax(1, np.nanmean(F0, 0))
     # return (Fc - F0) / np.fmax(1, F0)
+
 
 def remove_zcorrected_faults(ztrace, zprofiles, signals, metadata={}):
     """
