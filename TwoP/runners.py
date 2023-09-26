@@ -582,10 +582,10 @@ def process_metadata_directory(
     velocity = []
 
     # The sparse noise start + end times and the RF maps.
-
     sparseSt = []
     sparseEt = []
     sparseMaps = []
+    sparseEdges = []
 
     # Retinal protocol stimulus start + end times and stim identity.
     retinalSt = []
@@ -701,6 +701,8 @@ def process_metadata_directory(
                 sparseSt.append(frameChanges.reshape(-1, 1).copy())
                 sparseEt.append(sparse_et.reshape(-1, 1).copy())
                 sparseMaps.append(sparseMap.copy())
+                # get the edges information from the props file
+                sparseEdges = propTitles[2:].astype(int)
 
                 # np.save(os.path.join(saveDirectory,'sparse.st.npy'),frameChanges)
 
@@ -979,6 +981,7 @@ def process_metadata_directory(
         np.save(
             os.path.join(saveDirectory, "sparse.et.npy"), np.vstack(sparseEt)
         )
+        np.save(os.path.join(saveDirectory, "sparse.edges.npy"), sparseEdges)
     if len(retinalStim) > 0:
         np.save(
             os.path.join(saveDirectory, "retinal.st.npy"), np.vstack(retinalSt)
