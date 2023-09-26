@@ -144,9 +144,6 @@ def _process_s2p_singlePlane(
     )
     # Calculates the baseline fluorescence F0 used to calculate delta F over F.
     F0 = get_F0(
-        Fc, fs, prctl_F=pops["f0_percentile"], window_size=pops["f0_window"]
-    )
-    F02 = get_F0(
         Fc,
         fs,
         prctl_F=pops["f0_percentile"],
@@ -488,7 +485,7 @@ def process_s2p_directory(
         if not zTraces[i] is None:
             # Updates the zTraces to only include frames until the minimum
             # length determined above.
-            zTraces[i] = zTraces[i][:int(minLength)]
+            zTraces[i] = zTraces[i][: int(minLength)]
     # Combines results from each plane into a single array for signals,
     # locations, zProfile and zTrace.
     signals = np.hstack(signalList)
