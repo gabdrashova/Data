@@ -144,7 +144,11 @@ def _process_s2p_singlePlane(
     )
     # Calculates the baseline fluorescence F0 used to calculate delta F over F.
     F0 = get_F0(
-        Fc, fs, prctl_F=pops["f0_percentile"], window_size=pops["f0_window"]
+        Fc,
+        fs,
+        prctl_F=pops["f0_percentile"],
+        window_size=pops["f0_window"],
+        framesPerFolder=ops["frames_per_folder"],
     )
     # Calculates delta F oer F given the corrected neuropil traces and the
     # baseline fluorescence.
@@ -481,7 +485,7 @@ def process_s2p_directory(
         if not zTraces[i] is None:
             # Updates the zTraces to only include frames until the minimum
             # length determined above.
-            zTraces[i] = zTraces[i][:int(minLength)]
+            zTraces[i] = zTraces[i][: int(minLength)]
     # Combines results from each plane into a single array for signals,
     # locations, zProfile and zTrace.
     signals = np.hstack(signalList)
@@ -504,7 +508,7 @@ def process_s2p_directory(
 # bonsai + arduino
 # TODO: comment
 def process_metadata_directory(
-    bonsai_dir, ops, pops=create_2p_processing_ops, saveDirectory=None
+    bonsai_dir, ops, pops=create_2p_processing_ops(), saveDirectory=None
 ):
     """
 
@@ -578,10 +582,10 @@ def process_metadata_directory(
     velocity = []
 
     # The sparse noise start + end times and the RF maps.
-
     sparseSt = []
     sparseEt = []
     sparseMaps = []
+    sparseEdges = []
 
     # Retinal protocol stimulus start + end times and stim identity.
     retinalSt = []
@@ -697,6 +701,8 @@ def process_metadata_directory(
                 sparseSt.append(frameChanges.reshape(-1, 1).copy())
                 sparseEt.append(sparse_et.reshape(-1, 1).copy())
                 sparseMaps.append(sparseMap.copy())
+                # get the edges information from the props file
+                sparseEdges = propTitles[2:].astype(int)
 
                 # np.save(os.path.join(saveDirectory,'sparse.st.npy'),frameChanges)
 
@@ -975,6 +981,7 @@ def process_metadata_directory(
         np.save(
             os.path.join(saveDirectory, "sparse.et.npy"), np.vstack(sparseEt)
         )
+        np.save(os.path.join(saveDirectory, "sparse.edges.npy"), sparseEdges)
     if len(retinalStim) > 0:
         np.save(
             os.path.join(saveDirectory, "retinal.st.npy"), np.vstack(retinalSt)
@@ -1215,7 +1222,7 @@ def read_directory_dictionary(dataEntry, s2pDirectory):
     # The data from each  dataEntry column is placed into variables.
     name = dataEntry.Name
     date = dataEntry.Date
-    experiments = dataEntry.Experiments
+    experiments = np.atleast_1d(dataEntry.Experiments)
 
     # Joins suite2p directory with the name and the date.
     s2pDirectory = os.path.join(s2pDirectory, name, date)

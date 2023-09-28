@@ -410,7 +410,7 @@ def run_complete_analysis(
         res_ori = run_tests(
             OriTuner, "gauss", "gauss_split", df, "movement", "ori", "avg"
         )
-        
+
     else:
         res_ori = make_empty_results("Ori")
     #### run Tf
@@ -421,7 +421,7 @@ def run_complete_analysis(
             & (dfAll.contrast == 1)
             & (np.isin(dfAll.ori, [0, 90, 180, 270]))
         ]
-        
+
         df = filter_nonsig_orientations(df, criterion=0.05)
         res_freq = run_tests(
             FrequencyTuner, "gauss", "gauss_split", df, "movement", "tf", "avg"
@@ -503,6 +503,7 @@ def load_circle_data(directory):
         "wheelTs": "wheel.timestamps.npy",
         "wheelVelocity": "wheel.velocity.npy",
         "circlesSt": "circles.st.npy",
+        "circlesEt": "circles.et.npy",
         "circlesX": "circles.x.npy",
         "circlesY": "circles.y.npy",
         "circlesDiameter": "circles.diameter.npy",
