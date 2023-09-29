@@ -1143,6 +1143,9 @@ class Gauss2DTuner(BaseTuner):
     def set_bounds_p0(self, x, y, func=None):
 
         p0 = self._make_prelim_guess(x, y)
+        possibleMaxX = np.nanmax(x[:, 0]) - np.nanmin(x[:, 0])
+        possibleMaxY = np.nanmax(x[:, 1]) - np.nanmin(x[:, 1])
+
         bounds = (
             (
                 0,
@@ -1157,8 +1160,8 @@ class Gauss2DTuner(BaseTuner):
                 1,
                 np.nanmax(x[:, 0]),  # self.maxSpot[1] + 2,
                 np.nanmax(x[:, 1]),  # self.maxSpot[0] + 2,
-                np.inf,
-                np.inf,
+                possibleMaxX,
+                possibleMaxY,
                 np.pi,
                 1,
             ),
