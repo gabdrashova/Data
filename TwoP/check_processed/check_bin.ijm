@@ -1,15 +1,15 @@
 
 // Define your variables
 drive = "Z"; // Drive letter
-animal = "Hedes"; // Animal name
-date = "2022-08-05"; // Date
-plane = "plane3"; // Plane name
+animal = "Giuseppina"; // Animal name
+date = "2023-01-24"; // Date
+plane = "plane1"; // Plane name
 processing_folder = "ProcessedData";
 //processing_folder = "Suite2Pprocessedfiles";
 dir =  drive + ":/"+processing_folder+"/" + animal + "/" + date + "/suite2p/" + plane + "/";
 // Define your arrays for start and end times
-start_slices = newArray(1, 47360, 47460, 94722, 94822, 101948, 102048, 110599, 110699); // Example: Starts at slices 1, 101, and 201
-end_slices = newArray(100, 47459, 47559, 94821, 94921, 102047, 102147, 110698, 110798); // Example: Ends at slices 100, 200, and 300
+start_slices = newArray(1, 12334, 12434, 28248, 28348, 36900, 37000, 75568, 75668, 82794, 82894, 114603); // Example: Starts at slices 1, 101, and 201
+end_slices = newArray(100, 12433, 12533, 28347, 28447, 36999, 37099, 75667, 75767, 82893, 82993, 114702); // Example: Ends at slices 100, 200, and 300
 
 // Open the bin
 run("Raw...", "open="+dir+"data.bin image=[16-bit Signed] width=256 height=256 number=120000 little-endian");

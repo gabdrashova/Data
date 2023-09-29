@@ -8,9 +8,9 @@ import numpy as np
 import os
 Drive = "Z"
 Subfolder = "ProcessedData" 
-#Subfolder = "Suite2Pprocessedfiles" 
-animal = "Hedes"
-date = "2022-08-05"
+# Subfolder = "Suite2Pprocessedfiles" 
+animal = "Giuseppina"
+date = "2023-01-24"
 
 Directory = ""+Drive+":\\"+Subfolder+"\\"+ animal+"\\"+date+"\\suite2p\\combined\\"
 ops = np.load(os.path.join(Directory, "ops.npy"), allow_pickle = True)
@@ -57,6 +57,9 @@ start_slices = np.insert(start_slices, 0, 1)
 # Add 100 to the end of end_slices array
 end_slices = np.insert(end_slices,0, 100)
 
+# delete last one as it's outside of the frame numberand gives error in ImageJ
+start_slices = np.delete(start_slices,-1)
+end_slices = np.delete(end_slices,-1)
 
 # Print values from start_slices separated by commas
 print("Start Slices:")
@@ -68,7 +71,7 @@ print("\nEnd Slices:")
 end_slices_str = ', '.join(map(str, end_slices))
 print(end_slices_str)
 
-#%%   
+ 
 root_directory = ""+Drive+":\\"+Subfolder+"\\"+ animal+"\\"+date+"\\suite2p\\"
 
 for dirpath, dirnames,filenamez in os.walk(root_directory):
