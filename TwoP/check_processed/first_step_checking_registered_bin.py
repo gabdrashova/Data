@@ -6,11 +6,11 @@ Created on Mon Sep 11 12:43:55 2023
 """
 import numpy as np
 import os
-Drive = "Z"
+Drive = "D"
 Subfolder = "ProcessedData" 
 # Subfolder = "Suite2Pprocessedfiles" 
-animal = "Giuseppina"
-date = "2023-01-24"
+animal = "Ladon"
+date = "2023-06-01"
 
 Directory = ""+Drive+":\\"+Subfolder+"\\"+ animal+"\\"+date+"\\suite2p\\combined\\"
 ops = np.load(os.path.join(Directory, "ops.npy"), allow_pickle = True)

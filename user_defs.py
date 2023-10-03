@@ -163,7 +163,7 @@ def create_fitting_ops():
         "plot": True,
         "active_quantile": 0.2,
         "quiet_quantile": 0.01,
-        "save_dir": r"D:\saveloc",
+        "save_dir": r"D:\fitting_test\plots",
     }
 
     return ops
@@ -217,19 +217,19 @@ def directories_to_fit():
 
     # neurons
     dirDefs = [
-        {"Name": "Giuseppina", "Date": "2023-01-24", "SpecificNeurons": []},
-        #### to much running
-        {"Name": "Giuseppina", "Date": "2023-01-06", "SpecificNeurons": []},
-        # weird updated file for both below
-        {"Name": "Ladon", "Date": "2023-04-17", "SpecificNeurons": []},
-        {"Name": "Lotho", "Date": "2023-04-18", "SpecificNeurons": []},
+        # {"Name": "Giuseppina", "Date": "2023-01-24", "SpecificNeurons": []},
+        # #### to much running
+        # {"Name": "Giuseppina", "Date": "2023-01-06", "SpecificNeurons": []},
+        # # weird updated file for both below
+        # {"Name": "Ladon", "Date": "2023-04-17", "SpecificNeurons": []},
+        # {"Name": "Lotho", "Date": "2023-04-18", "SpecificNeurons": []},
         # {
         #     "Name": "Lotho",
         #     "Date": "2023-04-20",
         # },
         # done
         {"Name": "Ladon", "Date": "2023-07-07", "SpecificNeurons": []},
-        {"Name": "Giuseppina", "Date": "2023-01-06", "SpecificNeurons": []},
-        {"Name": "Lotho", "Date": "2023-04-12", "SpecificNeurons": []},
+        # {"Name": "Giuseppina", "Date": "2023-01-06", "SpecificNeurons": []},
+        # {"Name": "Lotho", "Date": "2023-04-12", "SpecificNeurons": []},
     ]
     return dirDefs
