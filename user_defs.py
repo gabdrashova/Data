@@ -60,7 +60,7 @@ def define_directories():
 
     directoryDb = {
         "dataDefFile": "D:\\preprocess.csv",
-        "preprocessedDataDir": "D://Suite2Pprocessedfiles//",
+        "preprocessedDataDir": "Z:\\ProcessedData\\",
         # "preprocessedDataDir": "Z://ProcessedData//",
         "zstackDir": "Z:\\RawData\\",
         "metadataDir": "Z:\\RawData\\",
@@ -112,7 +112,7 @@ def create_2p_processing_ops():
         "Npil_f0_window": 60,
         "zcorrect_mode": "Stack",
         "remove_z_extremes": False,
-        "process_suite2p": True,
+        "process_suite2p": False,
         "process_bonsai": True,
     }
     return pops
@@ -129,14 +129,14 @@ def create_ops_boutton_registration(filePath):
     ops["look_one_level_down"] = False
     ops["ignore_flyback"] = [0]
     ops["nchannels"] = 1
-    ops["nplanes"] = 8
+    ops["nplanes"] = 4  # 8
     ops["functional_chan"] = 1
 
     # registration ops
     ops["keep_movie_raw"] = True
     ops["align_by_chan"] = 1
 
-    ops["block_size"] = [256, 256]
+    ops["block_size"] = [512, 512]
     ops["nonrigid"] = True
     # run for only X number frames
     # ops['frames_include'] = 1000
@@ -145,7 +145,7 @@ def create_ops_boutton_registration(filePath):
     ops["save_path0"] = filePath[0]
 
     # localised optioed
-    ops["delete_extra_frames"] = True
+    ops["delete_extra_frames"] = False
     ops["run_registration"] = True
     ops["run_detection"] = True
 
@@ -210,13 +210,14 @@ def directories_to_fit():
     #     },
     #     {"Name": "Io", "Date": "2023-02-15", "SpecificNeurons": []},
     #     {"Name": "Io", "Date": "2023-02-20", "SpecificNeurons": []},
-    #     # {"Name": "Io", "Date": "2023-05-22", "SpecificNeurons": []},
+    #     {"Name": "Io", "Date": "2023-05-22", "SpecificNeurons": []},
     #     {"Name": "Janus", "Date": "2023-02-14", "SpecificNeurons": []},
     #     {"Name": "Janus", "Date": "2023-02-22", "SpecificNeurons": []},
     # ]
 
     # neurons
     dirDefs = [
+<<<<<<< Updated upstream
         # {"Name": "Giuseppina", "Date": "2023-01-24", "SpecificNeurons": []},
         # #### to much running
         # {"Name": "Giuseppina", "Date": "2023-01-06", "SpecificNeurons": []},
@@ -231,5 +232,20 @@ def directories_to_fit():
         {"Name": "Ladon", "Date": "2023-07-07", "SpecificNeurons": []},
         # {"Name": "Giuseppina", "Date": "2023-01-06", "SpecificNeurons": []},
         # {"Name": "Lotho", "Date": "2023-04-12", "SpecificNeurons": []},
+=======
+        #### to much running
+        # # weird updated file for both below
+        {"Name": "Ladon", "Date": "2023-04-17", "SpecificNeurons": [1]},
+        {"Name": "Lotho", "Date": "2023-04-18", "SpecificNeurons": []},
+        {
+            "Name": "Lotho",
+            "Date": "2023-04-20",
+        },
+        # # done
+        # # weird Ladon circles - check
+        # {"Name": "Ladon", "Date": "2023-07-07", "SpecificNeurons": []},
+        {"Name": "Giuseppina", "Date": "2023-01-06", "SpecificNeurons": []},
+        {"Name": "Lotho", "Date": "2023-04-12", "SpecificNeurons": []},
+>>>>>>> Stashed changes
     ]
     return dirDefs
