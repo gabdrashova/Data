@@ -132,7 +132,7 @@ run("Raw...", "open="+dir+"data.bin image=[16-bit Signed] width=256 height=256 n
 
 
 // Loop over the arrays
-for (i = 0; i < lengthOf(start_slices); i++) \{{
+for (i = 0; i < lengthOf(start_slices); i++) {{
     start_slice = start_slices[i];
     end_slice = end_slices[i];
 
