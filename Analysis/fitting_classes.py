@@ -213,22 +213,24 @@ class BaseTuner(ABC):
     def predict_constant(self, x, y):
         return np.nanmean(y)
 
-    def split_cv(self, x, y, split=0.3):
+    def split_cv(self, x, y, split=0.1):
         N = len(x)
         p0, bounds = self.set_bounds_p0(x, y)
         X_train, X_test, y_train, y_test = train_test_split(
-            x, y, test_size=0.30
+            x, y, test_size=split
         )
         props = self.fit_(X_train, y_train, self.func, p0, bounds)
-        preds = self.func(X_test, *props)
+        R2 = np.nan
+        if not np.any(np.isnan(props)):
+            preds = self.func(X_test, *props)
         R2 = self.score(preds, y_test)
         return R2
 
-    def split_cv_constant(self, x, y, split=0.3):
+    def split_cv_constant(self, x, y, split=0.1):
         N = len(x)
         p0, bounds = self.set_bounds_p0(x, y)
         X_train, X_test, y_train, y_test = train_test_split(
-            x, y, test_size=0.30
+            x, y, test_size=split
         )
         preds = np.repeat(np.nanmean(y_test), len(y_test))
         R2 = self.score(preds, y_test)
@@ -1143,6 +1145,21 @@ class Gauss2DTuner(BaseTuner):
     def set_bounds_p0(self, x, y, func=None):
 
         p0 = self._make_prelim_guess(x, y)
+        maxX = np.nanmax(x[:, 0])
+        minX = np.nanmin(x[:, 0])
+        maxY = np.nanmax(x[:, 1])
+        minY = np.nanmin(x[:, 1])
+        # 1 sd cannot exceed boarders
+        maxA = np.min([np.abs(maxX - p0[1]), np.abs(minX - p0[1])])
+        maxB = np.min([np.abs(maxY - p0[2]), np.abs(minY - p0[2])])
+        maxSd = np.max([maxA, maxB])
+
+        xu = np.unique(x[:, 0])
+        yu = np.unique(x[:, 1])
+        xdiff = np.nanmean(np.diff(xu))
+        ydiff = np.nanmean(np.diff(yu))
+        minDiff = np.nanmin([xdiff, ydiff])
+
         possibleMaxX = np.nanmax(x[:, 0]) - np.nanmin(x[:, 0])
         possibleMaxY = np.nanmax(x[:, 1]) - np.nanmin(x[:, 1])
 
@@ -1151,8 +1168,8 @@ class Gauss2DTuner(BaseTuner):
                 0,
                 np.nanmin(x[:, 0]),  # self.maxSpot[1] - 2,
                 np.nanmin(x[:, 1]),  # self.maxSpot[0] - 2,
-                0.5,
-                0.5,
+                minDiff / 2,  # 0.5,
+                minDiff / 2,  # 0.5,
                 0,
                 0,
             ),
@@ -1160,8 +1177,8 @@ class Gauss2DTuner(BaseTuner):
                 1,
                 np.nanmax(x[:, 0]),  # self.maxSpot[1] + 2,
                 np.nanmax(x[:, 1]),  # self.maxSpot[0] + 2,
-                possibleMaxX,
-                possibleMaxY,
+                maxSd,  # possibleMaxX,
+                maxSd,  # possibleMaxY,
                 np.pi,
                 1,
             ),
