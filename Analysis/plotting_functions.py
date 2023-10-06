@@ -4,7 +4,17 @@ Created on Fri Sep 29 14:00:57 2023
 
 @author: Liad
 """
+import numpy as np
+import os
+import matplotlib.pyplot as plt
+import scipy as sp
+import seaborn as sns
 
+# note: probably need to set your path if this gives a ModuleNotFoundError
+from alignment_functions import get_calcium_aligned
+from support_functions import *
+from user_defs import directories_to_fit, create_fitting_ops
+from fitting_classes import *
 
 def plot_tf_resp(
     resp,
@@ -120,7 +130,7 @@ def plot_summary_plot(
 
 
 def print_fitting_data(
-    gratingRes,
+    gratingRes, ts,
     quietI,
     activeI,
     data,
@@ -136,7 +146,7 @@ def print_fitting_data(
     paramsSfSplit,
     varsSf,
     pvalSf,
-    n,
+    n, respP,
     sessionData=None,
     saveDir=None,
 ):
@@ -155,10 +165,7 @@ def print_fitting_data(
         ts,
         quietI,
         activeI,
-        data["gratingsTf"],
-        data["gratingsSf"],
-        data["gratingsContrast"],
-        data["gratingsOri"],
+        data,
         n,
     )
     ### ORI

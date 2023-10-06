@@ -55,6 +55,7 @@ from support_functions import (
     run_complete_analysis,
     get_directory_from_session,
 )
+from plotting_functions import print_fitting_data
 from user_defs import directories_to_fit, create_fitting_ops
 import traceback
 from abc import ABC, abstractmethod
@@ -171,7 +172,7 @@ for currSession in sessions:
     for n in fittingRange:
 
         sig, res_ori, res_freq, res_spatial, res_con = run_complete_analysis(
-            gratingRes, data, ts, quietI, activeI, n,False,True,False,False
+            gratingRes, data, ts, quietI, activeI, n,True,True,True,False
         )
 
         respP[n] = sig[0]
@@ -200,6 +201,9 @@ for currSession in sessions:
         varsCon[:, n] = res_con[2:5]
         pvalCon[n] = res_con[6]
         TunersCon[:, n] = res_con[7:]
+        
+        
+
 
     np.save(os.path.join(saveDir, "resp.pval.npy"), respP)
     np.save(os.path.join(saveDir, "resp.direction.npy"), respDirection)
@@ -223,5 +227,19 @@ for currSession in sessions:
     np.save(os.path.join(saveDir, "fit.con.split.params.npy"), paramsConSplit)
     np.save(os.path.join(saveDir, "fit.con.vars.npy"), varsCon)
     np.save(os.path.join(saveDir, "fit.con.pval.npy"), pvalCon)
+    
 
-#%%
+#%%plotting
+
+    
+for n in fittingRange:
+         try:
+     
+             print_fitting_data(gratingRes,ts, quietI, activeI, data, paramsOri, 
+         paramsOriSplit, varsOri, pvalOri, paramsTf, paramsTfSplit, varsTf, 
+         pvalTf, paramsSf, paramsSfSplit, varsSf, pvalSf, n, respP,None, saveDir)
+             plt.close()
+         except Exception:
+             print("fail "+ str(n))
+    
+ 
