@@ -508,7 +508,7 @@ def process_s2p_directory(
 # bonsai + arduino
 # TODO: comment
 def process_metadata_directory(
-    bonsai_dir, ops, pops=create_2p_processing_ops(), saveDirectory=None
+    bonsai_dir, ops=None, pops=create_2p_processing_ops(), saveDirectory=None
 ):
     """
 
