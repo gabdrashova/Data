@@ -943,7 +943,7 @@ class GammaTuner(BaseTuner):
 
         p0 = self._make_prelim_guess(x, y)
         bounds = (
-            (np.nanmin(y), np.nanmin(y), 0.1, 0.01, 1),
+            (np.nanmin(y), np.nanmin(y), -np.inf, -np.inf, 0),
             (np.nanmax(y), np.nanmax(y), np.inf, np.inf, np.inf),
         )
         if ((func is None) & (self.func == self.gamma)) | (
@@ -1004,10 +1004,10 @@ class GammaTuner(BaseTuner):
                         np.nanmin(y),
                         np.nanmin(y),
                         np.nanmin(y),
-                        0.01,
-                        0.01,
-                        0.01,
-                        0.01,
+                        10 ^ -5,
+                        10 ^ -5,
+                        10 ^ -5,
+                        10 ^ -5,
                         1,
                         1,
                     ),
@@ -1044,10 +1044,10 @@ class GammaTuner(BaseTuner):
                         np.nanmin(y),
                         np.nanmin(y),
                         np.nanmin(y),
-                        0.01,
-                        0.01,
-                        0.01,
-                        0.01,
+                        10 ^ -5,
+                        10 ^ -5,
+                        10 ^ -5,
+                        10 ^ -5,
                         1,
                         1,
                     ),

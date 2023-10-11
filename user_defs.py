@@ -202,50 +202,56 @@ def directories_to_register():
 
 def directories_to_fit():
     # boutons
-    # dirDefs = [
-    #     {
-    #         "Name": "Io",
-    #         "Date": "2023-02-13",
-    #         "SpecificNeurons": [],
-    #     },
-    #     {"Name": "Io", "Date": "2023-02-15", "SpecificNeurons": []},
-    #     {"Name": "Io", "Date": "2023-02-20", "SpecificNeurons": []},
-    #     {"Name": "Io", "Date": "2023-05-22", "SpecificNeurons": []},
-    #     {"Name": "Janus", "Date": "2023-02-14", "SpecificNeurons": []},
-    #     {"Name": "Janus", "Date": "2023-02-22", "SpecificNeurons": []},
-    # ]
+    dirDefs = [
+        {
+            "Name": "Io",
+            "Date": "2023-02-13",
+            "SpecificNeurons": [],
+        },
+        {"Name": "Io", "Date": "2023-02-15", "SpecificNeurons": []},
+        {"Name": "Io", "Date": "2023-02-20", "SpecificNeurons": []},
+        {"Name": "Io", "Date": "2023-05-22", "SpecificNeurons": []},
+        {"Name": "Janus", "Date": "2023-02-14", "SpecificNeurons": []},
+        {"Name": "Janus", "Date": "2023-02-22", "SpecificNeurons": []},
+    ]
 
     # neurons
     dirDefs = [
-<<<<<<< Updated upstream
-        # {"Name": "Giuseppina", "Date": "2023-01-24", "SpecificNeurons": []},
-        # #### to much running
-        # {"Name": "Giuseppina", "Date": "2023-01-06", "SpecificNeurons": []},
-        # # weird updated file for both below
-        # {"Name": "Ladon", "Date": "2023-04-17", "SpecificNeurons": []},
-        # {"Name": "Lotho", "Date": "2023-04-18", "SpecificNeurons": []},
-        # {
-        #     "Name": "Lotho",
-        #     "Date": "2023-04-20",
-        # },
+        {"Name": "Giuseppina", "Date": "2023-01-24", "SpecificNeurons": []},
+        # weird updated file for both below
+        {"Name": "Ladon", "Date": "2023-04-17", "SpecificNeurons": []},
+        {"Name": "Lotho", "Date": "2023-04-18", "SpecificNeurons": []},
         # done
         {"Name": "Ladon", "Date": "2023-07-07", "SpecificNeurons": []},
-        # {"Name": "Giuseppina", "Date": "2023-01-06", "SpecificNeurons": []},
-        # {"Name": "Lotho", "Date": "2023-04-12", "SpecificNeurons": []},
-=======
-        #### to much running
-        # # weird updated file for both below
-        {"Name": "Ladon", "Date": "2023-04-17", "SpecificNeurons": [1]},
+        {"Name": "Giuseppina", "Date": "2023-01-06", "SpecificNeurons": []},
+        {"Name": "Lotho", "Date": "2023-04-12", "SpecificNeurons": []},
+        ### to much running
+        # weird updated file for both below
         {"Name": "Lotho", "Date": "2023-04-18", "SpecificNeurons": []},
         {
             "Name": "Lotho",
             "Date": "2023-04-20",
         },
-        # # done
-        # # weird Ladon circles - check
-        # {"Name": "Ladon", "Date": "2023-07-07", "SpecificNeurons": []},
+        # done
         {"Name": "Giuseppina", "Date": "2023-01-06", "SpecificNeurons": []},
         {"Name": "Lotho", "Date": "2023-04-12", "SpecificNeurons": []},
->>>>>>> Stashed changes
+        {"Name": "Quille", "Date": "2023-07-24", "SpecificNeurons": [127]},
+        {"Name": "Quille", "Date": "2023-08-24", "SpecificNeurons": []},
+        {"Name": "Quille", "Date": "2023-09-07", "SpecificNeurons": []},
     ]
     return dirDefs
+
+
+def get_sparsenoise_info():
+    session = pd.DataFrame(
+        [
+            {
+                "Name": "Giuseppina",
+                "Date": "2023-05-11",
+                "Experiments": [4],
+            }
+        ]
+    ).iloc[0]
+
+    tempDir = "D:\\sparseTemp\\"
+    return session, tempdir
