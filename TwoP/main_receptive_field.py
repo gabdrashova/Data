@@ -10,7 +10,11 @@ receptive field.
 
 
 from runners import read_directory_dictionary
-from Data.user_defs import define_directories, create_ops_boutton_registration
+from Data.user_defs import (
+    define_directories,
+    create_ops_boutton_registration,
+    get_sparsenoise_info,
+)
 import numpy as np
 import pandas as pd
 import time, os, shutil

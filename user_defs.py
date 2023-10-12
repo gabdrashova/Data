@@ -254,4 +254,4 @@ def get_sparsenoise_info():
     ).iloc[0]
 
     tempDir = "D:\\sparseTemp\\"
-    return session, tempdir
+    return session, tempDir
