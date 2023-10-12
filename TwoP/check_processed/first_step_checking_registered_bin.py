@@ -7,11 +7,11 @@ Created on Mon Sep 11 12:43:55 2023
 import numpy as np
 import os
 
-Drive = "Z"
+Drive = "D"
 Subfolder = "ProcessedData"
 # Subfolder = "Suite2Pprocessedfiles"
-animal = "Io"
-date = "2023-02-15"
+animal = "Quille"
+date = "2023-07-13"
 
 Directory = (
     ""
@@ -148,5 +148,5 @@ for (i = 0; i < lengthOf(start_slices); i++) {{
     selectWindow("data.bin");
 }}"""
 
-with open(os.path.join(avg_tiffs_folder, "fijiScript.ijm"), "w") as f:
+with open(os.path.join(root_directory, "fijiScript.ijm"), "w") as f:
     f.write(code)
