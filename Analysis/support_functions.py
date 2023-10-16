@@ -74,7 +74,7 @@ def get_trial_classification_running(
     criterion=0.9,
 ):
     wh, ts = align_stim(
-        wheelVelocity,
+        np.abs(wheelVelocity),
         wheelTs,
         stimSt,
         np.hstack((stimSt, stimEt)) - stimSt,
