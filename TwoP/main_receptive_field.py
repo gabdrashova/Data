@@ -9,7 +9,7 @@ receptive field.
 """
 
 
-from runners import read_directory_dictionary
+from Data.TwoP.runners import read_directory_dictionary
 from Data.user_defs import (
     define_directories,
     create_ops_boutton_registration,
@@ -29,7 +29,7 @@ import imp
 from suite2p import default_ops
 from suite2p.registration import utils, rigid
 from suite2p import run_s2p
-from registration_defs import *
+from Data.TwoP.registration_defs import *
 from Data.TwoP.runners import *
 
 sparseSession, tmpSave = get_sparsenoise_info()
