@@ -418,6 +418,7 @@ def run_complete_analysis(
         # Temporal Frequency tests
         df = dfAll[
             (dfAll.sf == 0.08)
+            & (dfAll.tf > 0)
             & (dfAll.contrast == 1)
             & (np.isin(dfAll.ori, [0, 90, 180, 270]))
         ]
