@@ -146,34 +146,62 @@ def make_neuron_db(
 
 
 def is_responsive_direction(df, criterion=0.05):
+    """
+    Determines the responsiveness and direction of response by fitting a linear model
+    and performs permutation testing by shuffling the target variable and fitting the 
+    model to shuffled data. 
+    The function calculates a p-value based on the actual R-squared score's 
+    percentile among the shuffled scores.
+    
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        The input DataFrame containing experimental data.
+    criterion : float, optional
+        The significance threshold for responsiveness. The default is 0.05.
+
+    Returns
+    -------
+    p : float
+        The responsiveness p-value.
+    direction : int
+        The direction of responsiveness (0 if not responsive, 1 for positive, -1 for negative).
+    """
     direction = 0
 
     a = df[["ori", "tf", "sf", "contrast"]].to_numpy()
     b = df["avg_corrected"].to_numpy()
 
-    # bad inds
+    # Identify and remove rows with non-finite (NaN or Inf) values.
     goodInds = np.where(np.isfinite(b))[0]
     a = a[goodInds, :]
     b = b[goodInds]
 
+    # Split the dataset into training and testing sets.
     X_train, X_test, y_train, y_test = train_test_split(a, b, test_size=0.10)
 
+    # Fit a linear model to the training data.
     res = sp.linalg.lstsq(X_train, y_train)
 
+    # Calculate the R-squared score for the test data.
     sklearn.metrics.r2_score
 
     score = r2_score(y_test, X_test @ res[0])
 
     shuffscore = np.zeros(500)
     for s in range(500):
+        # Shuffle the target variable (b) and fit the model to the shuffled data.`
         b_ = np.random.permutation(b)
         res = sp.linalg.lstsq(a, b_)
         shuffscore[s] = r2_score(b_, a @ res[0])
-
+        
+    # Calculate the percentile rank of the actual score among shuffled scores.
     p = sp.stats.percentileofscore(shuffscore, score)
-
+    # Convert the percentile rank to a p-value.
+    
     p = (100 - p) / 100
-
+    
+    # If the p-value is below the criterion, determine the responsiveness direction.
     if p < (criterion):
         direction = np.sign(np.nanmean(df["avg_corrected"]))
     return p, direction
