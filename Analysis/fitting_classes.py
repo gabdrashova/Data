@@ -937,14 +937,14 @@ class GammaTuner(BaseTuner):
         avgy = np.zeros_like(xu, dtype=float)
         for xi, xuu in enumerate(xu):
             avgy[xi] = np.nanmean(y[x == xuu])
-        return (np.nanmin(avgy), np.nanmax(avgy), 1, xu[np.argmax(avgy)], 1)
+        return (np.nanmin(avgy), np.nanmax(avgy), 0.5, 0.5, 2)
 
     def set_bounds_p0(self, x, y, func=None):
 
         p0 = self._make_prelim_guess(x, y)
         bounds = (
-            (np.nanmin(y), np.nanmin(y), -np.inf, -np.inf, 0),
-            (np.nanmax(y), np.nanmax(y), np.inf, np.inf, np.inf),
+            (np.nanmin(y), np.nanmin(y), 0.01, -10, 1),
+            (np.nanmax(y), np.nanmax(y), 10, 10, np.inf),
         )
         if ((func is None) & (self.func == self.gamma)) | (
             (not (func is None)) & (func == self.gamma)
@@ -1122,8 +1122,8 @@ class Gauss2DTuner(BaseTuner):
 
     def _make_prelim_guess(self, x, y):
         # get average per ori
-        xdiff = np.nanmin(np.diff(np.unique(x[:, 0])))
-        ydiff = np.nanmin(np.diff(np.unique(x[:, 1])))
+        xdiff = np.nanmedian(np.diff(np.unique(x[:, 0])))
+        ydiff = np.nanmedian(np.diff(np.unique(x[:, 1])))
 
         df = pd.DataFrame({"x": x[:, 0], "y": x[:, 1], "resp": y})
         means = df.groupby(["x", "y"]).mean().reset_index()
@@ -1168,8 +1168,8 @@ class Gauss2DTuner(BaseTuner):
                 0,
                 np.nanmin(x[:, 0]),  # self.maxSpot[1] - 2,
                 np.nanmin(x[:, 1]),  # self.maxSpot[0] - 2,
-                minDiff / 2,  # 0.5,
-                minDiff / 2,  # 0.5,
+                0.5 / 2,
+                0.5 / 2,
                 0,
                 0,
             ),

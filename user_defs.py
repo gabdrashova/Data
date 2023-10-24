@@ -146,7 +146,7 @@ def create_ops_boutton_registration(filePath):
 
     # localised optioed
     ops["delete_extra_frames"] = False
-    ops["run_registration"] = True
+    ops["run_registration"] = False
     ops["run_detection"] = True
 
     # detection settings
@@ -239,6 +239,8 @@ def directories_to_fit():
         {"Name": "Quille", "Date": "2023-08-24", "SpecificNeurons": []},
         {"Name": "Quille", "Date": "2023-09-07", "SpecificNeurons": []},
     ]
+
+    dirDefs = [{"Name": "Io", "Date": "2023-02-20", "SpecificNeurons": []}]
     return dirDefs
 
 
@@ -249,6 +251,7 @@ def get_sparsenoise_info():
                 "Name": "Giuseppina",
                 "Date": "2023-05-11",
                 "Experiments": [4],
+                "Plane": 1,
             }
         ]
     ).iloc[0]

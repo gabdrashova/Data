@@ -193,7 +193,7 @@ for ipl, ops_path in enumerate(ops_paths):
 
 #%% load bonsai stuff
 
-plane = 1
+plane = sparseSession[0]["Plane"]
 readDir = os.path.join(ops["save_path0"], "suite2p", f"plane{plane}")
 ops = np.load(os.path.join(readDir, "ops.npy"), allow_pickle=True).item()
 process_metadata_directory(
