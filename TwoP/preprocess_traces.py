@@ -395,7 +395,7 @@ def remove_zcorrected_faults(ztrace, zprofiles, signals, metadata={}):
     return signals
 
 
-def zero_signal(F):
+def zero_signal(F, zeroValue=19520):
     """
 
     This function adds the value 19520 to all ROIs across time.This value
@@ -419,4 +419,4 @@ def zero_signal(F):
 
     """
 
-    return F + 19520
+    return F + zeroValue

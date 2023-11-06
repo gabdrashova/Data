@@ -95,6 +95,7 @@ def create_2p_processing_ops():
         - zcorrect_mode: The mode of Z correction such as with the Z stack ("Stack").
     >>>>>>> Stashed changes
         - remove_z_extremes: Whether or not to remove the Z extremes in the traces.
+        - absZero: if None takes the default value. If a number that would be the zero for the sessions
         Please note: to change preprocessing settings, change the values in pops
         in this function.
         Returns
@@ -114,6 +115,7 @@ def create_2p_processing_ops():
         "remove_z_extremes": False,
         "process_suite2p": False,
         "process_bonsai": True,
+        "absZero": None,
     }
     return pops
 
@@ -129,14 +131,14 @@ def create_ops_boutton_registration(filePath):
     ops["look_one_level_down"] = False
     ops["ignore_flyback"] = [0]
     ops["nchannels"] = 1
-    ops["nplanes"] = 4  # 8
+    ops["nplanes"] = 8
     ops["functional_chan"] = 1
 
     # registration ops
     ops["keep_movie_raw"] = True
     ops["align_by_chan"] = 1
 
-    ops["block_size"] = [512, 512]
+    ops["block_size"] = [256, 256]
     ops["nonrigid"] = True
     # run for only X number frames
     # ops['frames_include'] = 1000
@@ -146,7 +148,7 @@ def create_ops_boutton_registration(filePath):
 
     # localised optioed
     ops["delete_extra_frames"] = False
-    ops["run_registration"] = False
+    ops["run_registration"] = True
     ops["run_detection"] = True
 
     # detection settings
@@ -173,14 +175,19 @@ def directories_to_register():
     dirDefs = [
         # {
         #     "Name": "Io",
+        #     "Date": "2023-02-20",
+        #     "Experiments": [1],
+        # }
+        # {
+        #     "Name": "Io",
         #     "Date": "2023-02-15",
         #     "Experiments": [2, 3, 4, 5, 6, 7],
         # },
-        {
-            "Name": "Io",
-            "Date": "2023-02-20",
-            "Experiments": [1, 3, 4, 5, 6, 7],
-        },
+        # {
+        #     "Name": "Io",
+        #     "Date": "2023-02-20",
+        #     "Experiments": [1, 3, 4, 5, 6, 7],
+        # },
         # {
         #     "Name": "Io",
         #     "Date": "2023-05-22",
@@ -196,6 +203,28 @@ def directories_to_register():
         #     "Date": "2023-02-22",
         #     "Experiments": [1, 3, 4, 5, 6, 7],
         # },
+        ############################
+        {
+            "Name": "Io",
+            "Date": "2023-01-18",
+            "Experiments": [1, 2, 3, 4, 5],
+        },
+        {
+            "Name": "Io",
+            "Date": "2023-02-01",
+            "Experiments": [1, 2, 3, 4, 5],
+        },
+        {
+            "Name": "Io",
+            "Date": "2023-02-02",
+            "Experiments": [1, 2, 3, 4, 5, 6, 7],
+        },
+        {
+            "Name": "Io",
+            "Date": "2023-02-07",
+            "Experiments": [1, 2, 3],
+        },
+        #############################################
     ]
     return pd.DataFrame(dirDefs)
 
@@ -203,44 +232,40 @@ def directories_to_register():
 def directories_to_fit():
     # boutons
     dirDefs = [
-        {
-            "Name": "Io",
-            "Date": "2023-02-13",
-            "SpecificNeurons": [],
-        },
-        {"Name": "Io", "Date": "2023-02-15", "SpecificNeurons": []},
+        # {
+        #     "Name": "Io",
+        #     "Date": "2023-02-13",
+        #     "SpecificNeurons": [],
+        # },
+        # {"Name": "Io", "Date": "2023-02-15", "SpecificNeurons": []},
         {"Name": "Io", "Date": "2023-02-20", "SpecificNeurons": []},
-        {"Name": "Io", "Date": "2023-05-22", "SpecificNeurons": []},
-        {"Name": "Janus", "Date": "2023-02-14", "SpecificNeurons": []},
-        {"Name": "Janus", "Date": "2023-02-22", "SpecificNeurons": []},
+        # {"Name": "Io", "Date": "2023-05-22", "SpecificNeurons": []},
+        # {"Name": "Janus", "Date": "2023-02-14", "SpecificNeurons": []},
+        # {"Name": "Janus", "Date": "2023-02-22", "SpecificNeurons": []},
+        # # # neurons
+        # {"Name": "Giuseppina", "Date": "2023-01-24", "SpecificNeurons": []},
+        # # weird updated file for both below
+        # {"Name": "Ladon", "Date": "2023-04-17", "SpecificNeurons": []},
+        # {"Name": "Lotho", "Date": "2023-04-18", "SpecificNeurons": []},
+        # # done
+        # {"Name": "Ladon", "Date": "2023-07-07", "SpecificNeurons": []},
+        # {"Name": "Giuseppina", "Date": "2023-01-06", "SpecificNeurons": []},
+        # {"Name": "Lotho", "Date": "2023-04-12", "SpecificNeurons": []},
+        # ### to much running
+        # # weird updated file for both below
+        # {"Name": "Lotho", "Date": "2023-04-18", "SpecificNeurons": []},
+        # {
+        #     "Name": "Lotho",
+        #     "Date": "2023-04-20",
+        # },
+        # # done
+        # {"Name": "Giuseppina", "Date": "2023-01-06", "SpecificNeurons": []},
+        # {"Name": "Lotho", "Date": "2023-04-12", "SpecificNeurons": []},
+        # {"Name": "Quille", "Date": "2023-07-24", "SpecificNeurons": []},
+        # {"Name": "Quille", "Date": "2023-08-24", "SpecificNeurons": []},
+        # {"Name": "Quille", "Date": "2023-09-07", "SpecificNeurons": []},
     ]
 
-    # neurons
-    dirDefs = [
-        {"Name": "Giuseppina", "Date": "2023-01-24", "SpecificNeurons": []},
-        # weird updated file for both below
-        {"Name": "Ladon", "Date": "2023-04-17", "SpecificNeurons": []},
-        {"Name": "Lotho", "Date": "2023-04-18", "SpecificNeurons": []},
-        # done
-        {"Name": "Ladon", "Date": "2023-07-07", "SpecificNeurons": []},
-        {"Name": "Giuseppina", "Date": "2023-01-06", "SpecificNeurons": []},
-        {"Name": "Lotho", "Date": "2023-04-12", "SpecificNeurons": []},
-        ### to much running
-        # weird updated file for both below
-        {"Name": "Lotho", "Date": "2023-04-18", "SpecificNeurons": []},
-        {
-            "Name": "Lotho",
-            "Date": "2023-04-20",
-        },
-        # done
-        {"Name": "Giuseppina", "Date": "2023-01-06", "SpecificNeurons": []},
-        {"Name": "Lotho", "Date": "2023-04-12", "SpecificNeurons": []},
-        {"Name": "Quille", "Date": "2023-07-24", "SpecificNeurons": [127]},
-        {"Name": "Quille", "Date": "2023-08-24", "SpecificNeurons": []},
-        {"Name": "Quille", "Date": "2023-09-07", "SpecificNeurons": []},
-    ]
-
-    dirDefs = [{"Name": "Io", "Date": "2023-02-20", "SpecificNeurons": []}]
     return dirDefs
 
 
