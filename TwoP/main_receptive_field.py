@@ -193,7 +193,7 @@ ops = tiff_to_binary(ops)
 
 #%% load bonsai stuff
 
-plane = sparseSession[0]["Plane"]
+plane = sparseSession["Plane"]
 readDir = os.path.join(ops["save_path0"], "suite2p", f"plane{plane}")
 ops = np.load(os.path.join(readDir, "ops.npy"), allow_pickle=True).item()
 process_metadata_directory(
@@ -209,7 +209,7 @@ edges = np.load(os.path.join(ops["save_path0"], "sparse.edges.npy"))
 plane = 2
 
 readDir = os.path.join(ops["save_path0"], "suite2p", f"plane{plane}")
-binPath = os.path.join(readDir, "data.bin")
+binPath = os.path.join(readDir, "data_raw.bin")
 ops = np.load(os.path.join(readDir, "ops.npy"), allow_pickle=True).item()
 
 f = np.nanmean(np.diff(ts, axis=0))
