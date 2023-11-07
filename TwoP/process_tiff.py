@@ -435,6 +435,8 @@ def extract_zprofiles(
             zProfile, smoothing_factor, axis=0
         )
 
+    # make
+    zProfile = zProfile - np.nanmin(zProfile, 0)
     # Appends the raw and neuropil corrected Z profiles into a dictionary.
     metadata["zprofiles_raw"] = zprofileRaw
     metadata["zprofiles_neuropil"] = Fneu.T
