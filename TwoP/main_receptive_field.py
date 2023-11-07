@@ -6,6 +6,12 @@ Created on Tue Sep 26 09:56:09 2023
 
 Print out sparse noise results for an entire image to roughly know the 
 receptive field.
+
+! IMPORTANT ! 
+
+Remember to set create_ops_boutton_registration for the options that suit your recording (num of pixels, num of channels etc)
+Set  get_sparsenoise_info with only one session and the save directory 
+
 """
 
 
@@ -41,6 +47,7 @@ if not os.path.isdir(tmpSave):
 defs = define_directories()
 s2pDir = defs["metadataDir"]
 filePath = read_directory_dictionary(sparseSession, s2pDir)
+# REMEMB
 ops = create_ops_boutton_registration(filePath)
 ops["save_path0"] = tmpSave
 
@@ -53,6 +60,7 @@ save_folder = os.path.join(ops["save_path0"], ops["save_folder"])
 os.makedirs(save_folder, exist_ok=True)
 
 ops = tiff_to_binary(ops)
+
 
 # # get plane folders
 # plane_folders = natsorted(
@@ -193,7 +201,7 @@ ops = tiff_to_binary(ops)
 
 #%% load bonsai stuff
 
-plane = sparseSession[0]["Plane"]
+plane = sparseSession["Plane"]
 readDir = os.path.join(ops["save_path0"], "suite2p", f"plane{plane}")
 ops = np.load(os.path.join(readDir, "ops.npy"), allow_pickle=True).item()
 process_metadata_directory(
@@ -206,10 +214,9 @@ st = np.load(os.path.join(ops["save_path0"], "sparse.st.npy"))
 smap = np.load(os.path.join(ops["save_path0"], "sparse.map.npy"))
 edges = np.load(os.path.join(ops["save_path0"], "sparse.edges.npy"))
 
-plane = 2
 
 readDir = os.path.join(ops["save_path0"], "suite2p", f"plane{plane}")
-binPath = os.path.join(readDir, "data.bin")
+binPath = os.path.join(readDir, "data_raw.bin")
 ops = np.load(os.path.join(readDir, "ops.npy"), allow_pickle=True).item()
 
 f = np.nanmean(np.diff(ts, axis=0))
@@ -240,8 +247,12 @@ for y in range(smap.shape[1]):
         averageMap[y, x, :, :] = np.nanmean(maps, 0)
 
 #%%
+averageMap_ncd = sp.signal.convolve2d(
+    averageMap_n[0, 0, :, :], np.ones((16, 16)), mode="same"
+)
+#%%
 averageMap_n = averageMap - np.nanmin(averageMap)
-averageMap_n = averageMap / np.nanmax(averageMap)
+averageMap_n = averageMap_n / np.nanmax(averageMap_n)
 
 
 xEdges = np.linspace(edges[2], edges[3], averageMap.shape[1] + 1)[:, 0]
@@ -260,16 +271,15 @@ for y in range(averageMap.shape[0]):
             ax[y, x].set_xticklabels([])
         if (y != 0) & (y != averageMap.shape[0] - 1):
             ax[y, x].set_yticklabels([])
-
         im = ax[y, x].imshow(
-            sp.ndimage.gaussian_filter(averageMap_n[y, x], 10),
+            sp.ndimage.gaussian_filter(averageMap_n[y, x], 8),
             extent=[xEdges[x], xEdges[x + 1], yEdges[y + 1], yEdges[y]],
             aspect="auto",
         )
 
         mx = np.nanmax(im.get_clim())
         maxVal = max(mx, maxVal)
-
+# maxVal = 1
 for y in range(averageMap.shape[0]):
     for x in range(averageMap.shape[1]):
         ax[y, x].get_images()[0].set_clim(0, maxVal)
