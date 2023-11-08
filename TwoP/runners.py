@@ -100,11 +100,18 @@ def _process_s2p_singlePlane(
         ySpan = ops["refImg"].shape[1]
     if type(ops["refImg"]) is list:
         ySpan = ops["refImg"][0].shape[1]
-
-    # Adds the absolute signal value to F, see function for a more details.
-    F = zero_signal(F)
-    # Adds the absolute signal value to N, see function for a more details.
-    N = zero_signal(N)
+    if pops["absZero"] is None:
+        # Takes default darkest value
+        # Adds the absolute signal value to F, see function for a more details.
+        F = zero_signal(F)
+        # Adds the absolute signal value to N, see function for a more details.
+        N = zero_signal(N)
+    else:
+        # Takes user darkest value
+        # Adds the absolute signal value to F, see function for a more details.
+        F = zero_signal(F, pops["absZero"])
+        # Adds the absolute signal value to N, see function for a more details.
+        N = zero_signal(N, pops["absZero"])
 
     # For each ROI, the location is determined from the suite2p output "stat"
     # (for X and Y) and from the piezo (for Z).
@@ -483,9 +490,10 @@ def process_s2p_directory(
         # some planes but not all.
         signalList[i] = signalList[i][: int(minLength), :]
         if not zTraces[i] is None:
-            # Updates the zTraces to only include frames until the minimum
+            # Updates the zTraces and zCorrs to only include frames until the minimum
             # length determined above.
             zTraces[i] = zTraces[i][: int(minLength)]
+            zCorrs[i] = zCorrs[i][: int(minLength)]
     # Combines results from each plane into a single array for signals,
     # locations, zProfile and zTrace.
     signals = np.hstack(signalList)

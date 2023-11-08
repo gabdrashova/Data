@@ -937,14 +937,20 @@ class GammaTuner(BaseTuner):
         avgy = np.zeros_like(xu, dtype=float)
         for xi, xuu in enumerate(xu):
             avgy[xi] = np.nanmean(y[x == xuu])
-        return (np.nanmin(avgy), np.nanmax(avgy), 0.5, 0.5, 2)
+        return (np.nanmin(avgy), np.nanmax(avgy), 0.5, 0.5, 4)
 
     def set_bounds_p0(self, x, y, func=None):
 
         p0 = self._make_prelim_guess(x, y)
         bounds = (
-            (np.nanmin(y), np.nanmin(y), 0.01, -10, 1),
-            (np.nanmax(y), np.nanmax(y), 10, 10, np.inf),
+            (
+                -np.inf,  # np.nanmin(y),
+                -np.inf,  # np.nanmin(y),
+                sys.float_info.epsilon,
+                sys.float_info.epsilon,
+                1,
+            ),
+            (np.inf, np.inf, 50, 50, 100),  # np.nanmax(y),  # np.nanmax(y),
         )
         if ((func is None) & (self.func == self.gamma)) | (
             (not (func is None)) & (func == self.gamma)
@@ -1150,8 +1156,8 @@ class Gauss2DTuner(BaseTuner):
         maxY = np.nanmax(x[:, 1])
         minY = np.nanmin(x[:, 1])
         # 1 sd cannot exceed boarders
-        maxA = np.min([np.abs(maxX - p0[1]), np.abs(minX - p0[1])])
-        maxB = np.min([np.abs(maxY - p0[2]), np.abs(minY - p0[2])])
+        maxA = np.max([np.abs(maxX - p0[1]), np.abs(minX - p0[1])])
+        maxB = np.max([np.abs(maxY - p0[2]), np.abs(minY - p0[2])])
         maxSd = np.max([maxA, maxB])
 
         xu = np.unique(x[:, 0])
@@ -1166,8 +1172,8 @@ class Gauss2DTuner(BaseTuner):
         bounds = (
             (
                 0,
-                np.nanmin(x[:, 0]),  # self.maxSpot[1] - 2,
-                np.nanmin(x[:, 1]),  # self.maxSpot[0] - 2,
+                self.maxSpot[1] - 5,  # ,np.nanmin(x[:, 0])
+                self.maxSpot[0] - 5,  # np.nanmin(x[:, 1])
                 0.5 / 2,
                 0.5 / 2,
                 0,
@@ -1175,8 +1181,8 @@ class Gauss2DTuner(BaseTuner):
             ),
             (
                 1,
-                np.nanmax(x[:, 0]),  # self.maxSpot[1] + 2,
-                np.nanmax(x[:, 1]),  # self.maxSpot[0] + 2,
+                self.maxSpot[1] + 5,  # ,np.nanmax(x[:, 0])
+                self.maxSpot[0] + 5,  # np.nanmax(x[:, 1])
                 maxSd,  # possibleMaxX,
                 maxSd,  # possibleMaxY,
                 np.pi,
