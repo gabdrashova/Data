@@ -151,7 +151,7 @@ def create_ops_boutton_registration(filePath):
     ops["run_registration"] = True
     ops["run_detection"] = True
 
-    # detection settings
+    # detection settings - do not change
     ops["allow_overlap"] = True
     ops["max_overlap"] = 0.2
     ops["max_iterations"] = 100
@@ -204,27 +204,142 @@ def directories_to_register():
         #     "Experiments": [1, 3, 4, 5, 6, 7],
         # },
         ############################
-        {
-            "Name": "Io",
-            "Date": "2023-01-18",
-            "Experiments": [1, 2, 3, 4, 5],
-        },
-        {
-            "Name": "Io",
-            "Date": "2023-02-01",
-            "Experiments": [1, 2, 3, 4, 5],
-        },
-        {
-            "Name": "Io",
-            "Date": "2023-02-02",
-            "Experiments": [1, 2, 3, 4, 5, 6, 7],
-        },
-        {
-            "Name": "Io",
-            "Date": "2023-02-07",
-            "Experiments": [1, 2, 3],
-        },
+        # {
+        #     "Name": "Io",
+        #     "Date": "2023-01-18",
+        #     "Experiments": [1, 2, 3, 4, 5],
+        # },
+        # {
+        #     "Name": "Io",
+        #     "Date": "2023-02-01",
+        #     "Experiments": [1, 2, 3, 4, 5],
+        # },
+        # {
+        #     "Name": "Io",
+        #     "Date": "2023-02-02",
+        #     "Experiments": [1, 2, 3, 4, 5, 6, 7],
+        # },
+        # {
+        #     "Name": "Io",
+        #     "Date": "2023-02-07",
+        #     "Experiments": [1, 2, 3],
+        # },
         #############################################
+        {
+            "Name": "Janus",
+            "Date": "2023-02-08",
+            "Experiments": [1, 2, 3, 4, 5, 6],
+        },
+        {
+            "Name": "Notos",
+            "Date": "2023-05-23",
+            "Experiments": [2, 3, 4, 5],
+        },
+        {
+            "Name": "Notos",
+            "Date": "2023-06-02",
+            "Experiments": [2, 3, 4, 5],
+        },
+        {
+            "Name": "Notos",
+            "Date": "2023-06-06",
+            "Experiments": [2, 3, 4, 5, 6],
+        },
+        {
+            "Name": "Notos",
+            "Date": "2023-06-09",
+            "Experiments": [2, 3, 4, 5, 6],
+        },
+        {
+            "Name": "Morpheus",
+            "Date": "2023-05-25",
+            "Experiments": [2, 3, 4, 5],
+        },
+        {
+            "Name": "Morpheus",
+            "Date": "2023-06-05",
+            "Experiments": [2, 3, 4, 5, 6],
+        },
+        {
+            "Name": "Morpheus",
+            "Date": "2023-06-08",
+            "Experiments": [2, 3, 4],
+        },
+        {
+            "Name": "Morpheus",
+            "Date": "2023-07-19",
+            "Experiments": [1, 2, 3, 4, 5, 6],
+        },
+        {
+            "Name": "Morpheus",
+            "Date": "2023-07-25",
+            "Experiments": [2, 3, 4, 5, 6],
+        },
+        {
+            "Name": "Oephelia",
+            "Date": "2023-07-21",
+            "Experiments": [1, 2, 3, 4, 5],
+        },
+        {
+            "Name": "Oephelia",
+            "Date": "2023-07-26",
+            "Experiments": [1, 2, 3, 4, 5, 6],
+        },
+        # {
+        #     "Name": "Memphis",
+        #     "Date": "2023-08-21",
+        #     "Experiments": [2, 3, 4, 5, 6],
+        # },
+        # {
+        #     "Name": "Memphis",
+        #     "Date": "2023-08-22",
+        #     "Experiments": [1, 3, 4],
+        # },
+        # {
+        #     "Name": "Memphis",
+        #     "Date": "2023-08-30",
+        #     "Experiments": [2, 3, 4, 5, 6, 7],
+        # },
+        # {
+        #     "Name": "Memphis",
+        #     "Date": "2023-08-31",
+        #     "Experiments": [2, 3, 4, 5, 6],
+        # },
+        # {
+        #     "Name": "Memphis",
+        #     "Date": "2023-09-05",
+        #     "Experiments": [2, 3, 4, 5, 6],
+        # },
+        # {
+        #     "Name": "Memphis",
+        #     "Date": "2023-09-08",
+        #     "Experiments": [2, 3],
+        # },
+        # {
+        #     "Name": "Memphis",
+        #     "Date": "2023-09-18",
+        #     "Experiments": [2, 3, 4, 5],
+        # },
+        # {
+        #     "Name": "Memphis",
+        #     "Date": "2023-09-21",
+        #     "Experiments": [2, 3, 4, 5],
+        # },
+        # {
+        #     "Name": "Memphis",
+        #     "Date": "2023-09-27",
+        #     "Experiments": [2, 3, 4, 5],
+        # },
+        # {
+        #     "Name": "Memphis",
+        #     "Date": "2023-10-05",
+        #     "Experiments": [1, 2, 3, 4, 5, 6, 7],
+        # },
+        # {
+        #     "Name": "Memphis",
+        #     "Date": "2023-10-18",
+        #     "Experiments": [1, 2, 3, 4],
+        # },
     ]
     return pd.DataFrame(dirDefs)
 
@@ -232,38 +347,38 @@ def directories_to_register():
 def directories_to_fit():
     # boutons
     dirDefs = [
-        # {
-        #     "Name": "Io",
-        #     "Date": "2023-02-13",
-        #     "SpecificNeurons": [],
-        # },
-        # {"Name": "Io", "Date": "2023-02-15", "SpecificNeurons": []},
+        {
+            "Name": "Io",
+            "Date": "2023-02-13",
+            "SpecificNeurons": [],
+        },
+        {"Name": "Io", "Date": "2023-02-15", "SpecificNeurons": []},
         {"Name": "Io", "Date": "2023-02-20", "SpecificNeurons": []},
-        # {"Name": "Io", "Date": "2023-05-22", "SpecificNeurons": []},
-        # {"Name": "Janus", "Date": "2023-02-14", "SpecificNeurons": []},
-        # {"Name": "Janus", "Date": "2023-02-22", "SpecificNeurons": []},
-        # # # neurons
-        # {"Name": "Giuseppina", "Date": "2023-01-24", "SpecificNeurons": []},
-        # # weird updated file for both below
-        # {"Name": "Ladon", "Date": "2023-04-17", "SpecificNeurons": []},
-        # {"Name": "Lotho", "Date": "2023-04-18", "SpecificNeurons": []},
-        # # done
-        # {"Name": "Ladon", "Date": "2023-07-07", "SpecificNeurons": []},
-        # {"Name": "Giuseppina", "Date": "2023-01-06", "SpecificNeurons": []},
-        # {"Name": "Lotho", "Date": "2023-04-12", "SpecificNeurons": []},
-        # ### to much running
-        # # weird updated file for both below
-        # {"Name": "Lotho", "Date": "2023-04-18", "SpecificNeurons": []},
-        # {
-        #     "Name": "Lotho",
-        #     "Date": "2023-04-20",
-        # },
-        # # done
-        # {"Name": "Giuseppina", "Date": "2023-01-06", "SpecificNeurons": []},
-        # {"Name": "Lotho", "Date": "2023-04-12", "SpecificNeurons": []},
-        # {"Name": "Quille", "Date": "2023-07-24", "SpecificNeurons": []},
-        # {"Name": "Quille", "Date": "2023-08-24", "SpecificNeurons": []},
-        # {"Name": "Quille", "Date": "2023-09-07", "SpecificNeurons": []},
+        {"Name": "Io", "Date": "2023-05-22", "SpecificNeurons": []},
+        {"Name": "Janus", "Date": "2023-02-14", "SpecificNeurons": []},
+        {"Name": "Janus", "Date": "2023-02-22", "SpecificNeurons": []},
+        # # neurons
+        {"Name": "Giuseppina", "Date": "2023-01-24", "SpecificNeurons": []},
+        # weird updated file for both below
+        {"Name": "Ladon", "Date": "2023-04-17", "SpecificNeurons": []},
+        {"Name": "Lotho", "Date": "2023-04-18", "SpecificNeurons": []},
+        # done
+        {"Name": "Ladon", "Date": "2023-07-07", "SpecificNeurons": []},
+        {"Name": "Giuseppina", "Date": "2023-01-06", "SpecificNeurons": []},
+        {"Name": "Lotho", "Date": "2023-04-12", "SpecificNeurons": []},
+        ### to much running
+        # weird updated file for both below
+        {"Name": "Lotho", "Date": "2023-04-18", "SpecificNeurons": []},
+        {
+            "Name": "Lotho",
+            "Date": "2023-04-20",
+        },
+        # done
+        {"Name": "Giuseppina", "Date": "2023-01-06", "SpecificNeurons": []},
+        {"Name": "Lotho", "Date": "2023-04-12", "SpecificNeurons": []},
+        {"Name": "Quille", "Date": "2023-07-24", "SpecificNeurons": []},
+        {"Name": "Quille", "Date": "2023-08-24", "SpecificNeurons": []},
+        {"Name": "Quille", "Date": "2023-09-07", "SpecificNeurons": []},
     ]
 
     return dirDefs
@@ -273,10 +388,10 @@ def get_sparsenoise_info():
     session = pd.DataFrame(
         [
             {
-                "Name": "Giuseppina",
-                "Date": "2023-05-11",
-                "Experiments": [4],
-                "Plane": 1,
+                "Name": "Tara",
+                "Date": "2023-11-01",
+                "Experiments": [1],
+                "Plane": 2,
             }
         ]
     ).iloc[0]

@@ -937,20 +937,28 @@ class GammaTuner(BaseTuner):
         avgy = np.zeros_like(xu, dtype=float)
         for xi, xuu in enumerate(xu):
             avgy[xi] = np.nanmean(y[x == xuu])
-        return (np.nanmin(avgy), np.nanmax(avgy), 0.5, 0.5, 4)
+        return (
+            np.nanmin(avgy),
+            np.nanmax(avgy),
+            1,
+            0,
+        )
 
     def set_bounds_p0(self, x, y, func=None):
-
         p0 = self._make_prelim_guess(x, y)
         bounds = (
             (
-                -np.inf,  # np.nanmin(y),
-                -np.inf,  # np.nanmin(y),
-                sys.float_info.epsilon,
-                sys.float_info.epsilon,
-                1,
+                np.nanmin(y),
+                np.nanmin(y),
+                0.01,
+                0,
             ),
-            (np.inf, np.inf, 50, 50, 100),  # np.nanmax(y),  # np.nanmax(y),
+            (
+                np.nanmax(y),
+                np.nanmax(y),
+                100,
+                100,
+            ),  # np.nanmax(y),  # np.nanmax(y),
         )
         if ((func is None) & (self.func == self.gamma)) | (
             (not (func is None)) & (func == self.gamma)
@@ -1000,34 +1008,28 @@ class GammaTuner(BaseTuner):
                     p0_[2],
                     p0_[3],
                     p0_[3],
-                    p0_[4],
-                    p0_[4],
                 )
 
                 bounds = (
                     (
-                        np.nanmin(y),
-                        np.nanmin(y),
-                        np.nanmin(y),
-                        np.nanmin(y),
-                        10 ^ -5,
-                        10 ^ -5,
-                        10 ^ -5,
-                        10 ^ -5,
-                        1,
-                        1,
+                        bounds[0][0],
+                        bounds[0][0],
+                        bounds[0][1],
+                        bounds[0][1],
+                        bounds[0][2],
+                        bounds[0][2],
+                        bounds[0][3],
+                        bounds[0][3],
                     ),
                     (
-                        np.nanmax(y),
-                        np.nanmax(y),
-                        np.nanmax(y),
-                        np.nanmax(y),
-                        np.inf,
-                        np.inf,
-                        np.inf,
-                        np.inf,
-                        np.inf,
-                        np.inf,
+                        bounds[1][0],
+                        bounds[1][0],
+                        bounds[1][1],
+                        bounds[1][1],
+                        bounds[1][2],
+                        bounds[1][2],
+                        bounds[1][3],
+                        bounds[1][3],
                     ),
                 )
             except:
@@ -1040,34 +1042,28 @@ class GammaTuner(BaseTuner):
                     p0[2],
                     p0[3],
                     p0[3],
-                    p0[4],
-                    p0[4],
                 )
 
                 bounds = (
                     (
-                        np.nanmin(y),
-                        np.nanmin(y),
-                        np.nanmin(y),
-                        np.nanmin(y),
-                        10 ^ -5,
-                        10 ^ -5,
-                        10 ^ -5,
-                        10 ^ -5,
-                        1,
-                        1,
+                        bounds[0][0],
+                        bounds[0][0],
+                        bounds[0][1],
+                        bounds[0][1],
+                        bounds[0][2],
+                        bounds[0][2],
+                        bounds[0][3],
+                        bounds[0][3],
                     ),
                     (
-                        np.nanmax(y),
-                        np.nanmax(y),
-                        np.nanmax(y),
-                        np.nanmax(y),
-                        np.inf,
-                        np.inf,
-                        np.inf,
-                        np.inf,
-                        np.inf,
-                        np.inf,
+                        bounds[1][0],
+                        bounds[1][0],
+                        bounds[1][1],
+                        bounds[1][1],
+                        bounds[1][2],
+                        bounds[1][2],
+                        bounds[1][3],
+                        bounds[1][3],
                     ),
                 )
             return p0, bounds
@@ -1078,11 +1074,12 @@ class GammaTuner(BaseTuner):
         else:
             return self.gamma(x, *self.props[[1, 3, 5, 7, 9]])
 
-    def gamma(self, s, r0, A, a, tau, n):
+    def gamma(self, s, r0, A, a, n):
         # r0 = np.float32(r0)
         # A = np.float32(A)
         # a = np.float32(a)
-        n = int(n)
+        tau = 0
+        # n = int(n)
         res = r0 + A * (
             (((a * (s - tau)) ** n) * np.exp(-a * (s - tau)))
             / ((n**n) * np.exp(-n))
@@ -1090,28 +1087,64 @@ class GammaTuner(BaseTuner):
 
         return res
 
-    def gamma_split(self, s, r0q, r0a, Aq, Aa, aq, aa, tauq, taua, nq, na):
+    def gamma_split(self, s, r0q, r0a, Aq, Aa, aq, aa, nq, na):
         sep = self.sep
+
         # have one state only to predict
         if len(np.atleast_1d(c)) == 1:
             if self.state <= sep:
                 # quiet
-                y = self.gamma(s, r0q, Aq, aq, tauq, nq)
+                y = self.gamma(s, r0q, Aq, aq, nq)
             else:
                 # active
-                y = self.gamma(s, r0a, Aa, aa, taua, na)
+                y = self.gamma(s, r0a, Aa, aa, na)
             return y
 
         if not (sep is None):
             quiet = c[:sep]
             active = c[sep:]
-            yq = self.gamma(s, r0q, Aq, aq, tauq, nq)
-            ya = self.gamma(s, r0a, Aa, aa, taua, na)
+            yq = self.gamma(s, r0q, Aq, aq, nq)
+            ya = self.gamma(s, r0a, Aa, aa, na)
             return np.append(yq, ya)
         else:
             return np.nan
 
         return res
+
+    # def gamma(self, s, r0, A, a, tau, n):
+    #     # r0 = np.float32(r0)
+    #     # A = np.float32(A)
+    #     # a = np.float32(a)
+    #     n = int(n)
+    #     res = r0 + A * (
+    #         (((a * (s - tau)) ** n) * np.exp(-a * (s - tau)))
+    #         / ((n**n) * np.exp(-n))
+    #     )
+
+    #     return res
+
+    # def gamma_split(self, s, r0q, r0a, Aq, Aa, aq, aa, tauq, taua, nq, na):
+    #     sep = self.sep
+    #     # have one state only to predict
+    #     if len(np.atleast_1d(c)) == 1:
+    #         if self.state <= sep:
+    #             # quiet
+    #             y = self.gamma(s, r0q, Aq, aq, tauq, nq)
+    #         else:
+    #             # active
+    #             y = self.gamma(s, r0a, Aa, aa, taua, na)
+    #         return y
+
+    #     if not (sep is None):
+    #         quiet = c[:sep]
+    #         active = c[sep:]
+    #         yq = self.gamma(s, r0q, Aq, aq, tauq, nq)
+    #         ya = self.gamma(s, r0a, Aa, aa, taua, na)
+    #         return np.append(yq, ya)
+    #     else:
+    #         return np.nan
+
+    #     return res
 
 
 class Gauss2DTuner(BaseTuner):
