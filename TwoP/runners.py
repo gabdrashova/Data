@@ -7,7 +7,7 @@ Created on Fri Oct 21 08:39:57 2022
 
 """Runner functions"""
 
-from suite2p.registration.zalign import compute_zpos
+# from suite2p.registration.zalign import compute_zpos
 from joblib import Parallel, delayed
 import numpy as np
 import time
@@ -214,7 +214,7 @@ def _process_s2p_singlePlane(
                 neuropil_correction=regPars[1, :],
                 metadata=processing_metadata,
                 smoothing_factor=2,
-            )
+                abs_zero = pops["absZero"])
             # Corrects traces for z motion based on the Z profiles.
             Fcz = correct_zmotion(
                 dF,

@@ -346,6 +346,7 @@ def extract_zprofiles(
     neuropil_masks=None,
     smoothing_factor=None,
     metadata={},
+    abs_zero = None
 ):
     """
     Extracts fluorescence of ROIs across depth of z-stack.
@@ -416,8 +417,12 @@ def extract_zprofiles(
     zProfile, Fneu = extract_traces(zstack, rois, npils, 1)
 
     # Adds the zero signal value. Refer to function for further details.
-    zProfile = zero_signal(zProfile)
-    Fneu = zero_signal(Fneu)
+    if (abs_zero is None):
+        zProfile = zero_signal(zProfile)
+        Fneu = zero_signal(Fneu)
+    else:
+        zProfile = zero_signal(zProfile,abs_zero)
+        Fneu = zero_signal(Fneu,abs_zero)
 
     # Only takes the ROIs which are considered cells.
     zProfile = zProfile[isCell[:, 0], :].T
@@ -435,8 +440,8 @@ def extract_zprofiles(
             zProfile, smoothing_factor, axis=0
         )
 
-    # make
-    zProfile = zProfile - np.nanmin(zProfile, 0)
+    
+    
     # Appends the raw and neuropil corrected Z profiles into a dictionary.
     metadata["zprofiles_raw"] = zprofileRaw
     metadata["zprofiles_neuropil"] = Fneu.T
