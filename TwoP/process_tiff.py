@@ -326,7 +326,7 @@ def register_zstack(
             zstackTmp[p, :, :] = _fill_plane_piezo(zstack, piezoNorm, p)
         # apply a gaussian filter of 1 sigma on the y axis
         zstack = zstackTmp
-        zstack = sp.ndimage.gaussian_filter(zstack, (0, 1, 0))
+        zstack = sp.ndimage.gaussian_filter(zstack, (0, 0.5, 0))
 
     if not (target_image is None):
         # Registers the z Stack to the reference image using functions from
