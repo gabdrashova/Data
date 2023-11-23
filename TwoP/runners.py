@@ -215,6 +215,9 @@ def _process_s2p_singlePlane(
                 metadata=processing_metadata,
                 smoothing_factor=2,
                 abs_zero = pops["absZero"])
+            
+            # quantify how many z profiles are at 0 (meaning the neuropil was stronger)
+            isZcorrected = ~np.all(zprofiles==0,axis=0)
             # Corrects traces for z motion based on the Z profiles.
             Fcz = correct_zmotion(
                 dF,
@@ -243,6 +246,7 @@ def _process_s2p_singlePlane(
         "zTrace": zTrace,
         "zCorr_stack": zcorr,
         "locs": cellLocs,
+        "isZcorrected": isZcorrected,
         "cellId": np.where(isCell[0, :].astype(bool))[0],
     }
 
@@ -463,6 +467,7 @@ def process_s2p_directory(
     signalLocs = []
     zTraces = []
     zProfiles = []
+    isZcorrectedList= []
     zCorrs = []
     cellIds = []
     # Appends lists with the results for all the planes.
@@ -474,6 +479,7 @@ def process_s2p_directory(
             zProfiles.append(results[i]["zProfiles"])
             zCorrs.append(results[i]["zCorr_stack"])
             cellIds.append(results[i]["cellId"])
+            isZcorrectedList.append(results[i]["isZcorrected"])
             # Places the signal into an array.
             res = signalList[i]
             # Specifies which plane each ROI belongs to.
@@ -502,13 +508,15 @@ def process_s2p_directory(
     zTrace = np.vstack(zTraces)
     zCorrs = np.vstack(zCorrs)
     cellIds = np.hstack(cellIds)
+    isZcorrected = np.hstack(isZcorrectedList)
 
     # Saves the results as individual npy files.
     np.save(os.path.join(saveDirectory, "calcium.dff.npy"), signals)
-    np.save(os.path.join(saveDirectory, "calcium.planes.npy"), planes)
+    np.save(os.path.join(saveDirectory, "rois.planes.npy"), planes)
     np.save(os.path.join(saveDirectory, "calcium.Ids.npy"), cellIds)
     np.save(os.path.join(saveDirectory, "rois.xyz.npy"), locs)
     np.save(os.path.join(saveDirectory, "rois.zprofiles.npy"), zProfile)
+    np.save(os.path.join(saveDirectory, "calcium.isZCorrected.npy"), isZcorrected)
     np.save(os.path.join(saveDirectory, "planes.zTrace"), zTrace)
     np.save(os.path.join(saveDirectory, "planes.zcorrStack"), zCorrs)
 
