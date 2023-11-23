@@ -153,7 +153,7 @@ def correct_neuropil(
 
 
 # TODO
-def correct_zmotion(F, zprofiles, ztrace, ignore_faults=True, metadata={}):
+def correct_zmotion(F, zprofiles, ztrace, ignore_faults=True, ampThreshold = 0.2, metadata={}):
     """
     Corrects changes in fluorescence due to brain movement along z-axis
     (depth). Method is based on algorithm described in Ryan, ..., Lagnado
@@ -173,6 +173,10 @@ def correct_zmotion(F, zprofiles, ztrace, ignore_faults=True, metadata={}):
     ignore_faults: bool, optional
         Whether to remove the timepoints where imaging took place in a plane
         that is meaningless to a cell's activity. Default is True.
+    
+    ampThreshold: float, optional
+        The cutoff for amplification that is deemed too high (thus amplifying noise).
+        Default is 0.2 (amplification X5).
 
     Returns
     -------
@@ -192,10 +196,13 @@ def correct_zmotion(F, zprofiles, ztrace, ignore_faults=True, metadata={}):
     # zprofiles = zprofiles - np.min(zprofiles, 0)
     # Calculates the correction factor by dividing the z profiles with the
     # z profile at the reference depth.
-    correctionFactor = zprofiles / zprofiles[referenceDepth, :]
+    correctionFactor = np.abs(zprofiles / zprofiles[referenceDepth, :])
     # Assigns the correction factor for each frame based on its location in the
     # Z trace.
     correctionMatrix = correctionFactor[ztrace, :]
+    
+    # remove parts that are too amplified
+    correctionMatrix[correctionMatrix<ampThreshold] = np.nan
     # Applies the Z correction by dividing the frames in the fluorescence
     # traces by the correction factor.
     signal = F / correctionMatrix
