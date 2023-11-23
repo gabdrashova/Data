@@ -326,12 +326,14 @@ def register_zstack(
             zstackTmp[p, :, :] = _fill_plane_piezo(zstack, piezoNorm, p)
         # apply a gaussian filter of 1 sigma on the y axis
         zstack = zstackTmp
-        zstack = sp.ndimage.gaussian_filter(zstack, (0, 0.5, 0))
+        
 
     if not (target_image is None):
         # Registers the z Stack to the reference image using functions from
         # suite2p. See function for details.
         zstack = register_stack_to_ref(zstack, target_image)
+    
+    # zstack = sp.ndimage.gaussian_filter(zstack, (0, 1, 0))
     return zstack
 
 
@@ -346,7 +348,7 @@ def extract_zprofiles(
     neuropil_masks=None,
     smoothing_factor=None,
     metadata={},
-    abs_zero = None
+    abs_zero = None,    
 ):
     """
     Extracts fluorescence of ROIs across depth of z-stack.
@@ -431,11 +433,12 @@ def extract_zprofiles(
     zprofileRaw = zProfile.T.copy()
     # Performs neuropil correction of the zProfile.
     if not (neuropil_correction is None):
-        zProfile = zProfile - neuropil_correction.reshape(1, -1) * Fneu
+        zProfile = np.fmax(zProfile - (neuropil_correction[1,:].reshape(1, -1) * Fneu + neuropil_correction[0,:].reshape(1, -1)),0)
+        # iF - (b * iN + a) + F0[:, iROI]
+    # 
 
     # Smoothes the Z profile using a gaussian filter.
     if not (smoothing_factor is None):
-
         zProfile = sp.ndimage.gaussian_filter1d(
             zProfile, smoothing_factor, axis=0
         )
