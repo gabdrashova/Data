@@ -515,7 +515,7 @@ def process_s2p_directory(
     np.save(os.path.join(saveDirectory, "rois.planes.npy"), planes)
     np.save(os.path.join(saveDirectory, "calcium.Ids.npy"), cellIds)
     np.save(os.path.join(saveDirectory, "rois.xyz.npy"), locs)
-    np.save(os.path.join(saveDirectory, "rois.zprofiles.npy"), zProfile)
+    np.save(os.path.join(saveDirectory, "rois.zProfiles.npy"), zProfile)
     np.save(os.path.join(saveDirectory, "calcium.isZCorrected.npy"), isZcorrected)
     np.save(os.path.join(saveDirectory, "planes.zTrace"), zTrace)
     np.save(os.path.join(saveDirectory, "planes.zcorrStack"), zCorrs)
@@ -997,7 +997,7 @@ def process_metadata_directory(
         np.save(
             os.path.join(saveDirectory, "sparse.et.npy"), np.vstack(sparseEt)
         )
-        np.save(os.path.join(saveDirectory, "sparse.edges.npy"), sparseEdges)
+        np.save(os.path.join(saveDirectory, "sparseArea.edges.npy"), sparseEdges)
     if len(retinalStim) > 0:
         np.save(
             os.path.join(saveDirectory, "retinal.st.npy"), np.vstack(retinalSt)
