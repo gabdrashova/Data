@@ -535,12 +535,12 @@ def get_arduino_data(arduinoDirectory, plot=False):
     csvChannels = np.loadtxt(arduinoFilePath, delimiter=",")
     # arduinoTime = csvChannels[:,-1]
     # Calculates the arduino time.
-    arduinoTime = np.arange(csvChannels.shape[0]) / 1000
+    # arduinoTime = np.arange(csvChannels.shape[0]) / 1000
     # arduinoTimeDiff = np.diff(arduinoTime,prepend=True)
     # normalTimeDiff = np.where(arduinoTimeDiff>-100)[0]
     # csvChannels = csvChannels[normalTimeDiff,:]
     # # convert time to second (always in ms)
-    # arduinoTime = csvChannels[:,-1]/1000
+    arduinoTime = csvChannels[:,-1]/1000
 
     # Starts arduino time at zero.
     arduinoTime -= arduinoTime[0]
