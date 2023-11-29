@@ -69,6 +69,8 @@ for i in range(len(database)):
             ignorePlanes = np.atleast_1d(
                 np.array(database.loc[i]["IgnorePlanes"]).astype(int)
             )
+            # make save directory the main root
+            saveDirectory = os.path.split(s2pDirectory)[0]            
             # Returns the ops dictionary.
             ops = get_ops_file(s2pDirectory)
             if pops["process_suite2p"]:
