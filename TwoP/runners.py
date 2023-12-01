@@ -419,13 +419,10 @@ def process_s2p_directory(
         os.makedirs(saveDirectory)
     # Creates a list which contains the directories to the subfolders for each
     # plane.
-    planeDirs = glob.glob(os.path.join(suite2pDirectory, "plane*"))
-    # Creates a list with the subfolder which contains the combined data from
-    # all planes.
-    combinedDir = glob.glob(os.path.join(suite2pDirectory, "combined*"))
+    planeDirs = glob.glob(os.path.join(suite2pDirectory, "plane*"))   
     # Loads the ops dictionary from the combined directory.
     ops = np.load(
-        os.path.join(combinedDir[0], "ops.npy"), allow_pickle=True
+        os.path.join(planeDirs[0], "ops.npy"), allow_pickle=True
     ).item()
     # Loads the number of planes into a variable.
     numPlanes = ops["nplanes"]
