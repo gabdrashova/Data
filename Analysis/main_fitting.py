@@ -104,24 +104,28 @@ for currSession in sessions:
     respDirection = np.zeros(gratingRes.shape[-1])
 
     paramsOri = np.zeros((5, gratingRes.shape[-1]))
-    paramsOriSplit = np.zeros((7, gratingRes.shape[-1]))
+    # paramsOriSplit = np.zeros((7, gratingRes.shape[-1]))
+    paramsOriSplit = np.zeros((5, gratingRes.shape[-1],2))
     varsOri = np.zeros((3, gratingRes.shape[-1]))
     pvalOri = np.zeros(gratingRes.shape[-1])
     TunersOri = np.empty((2, gratingRes.shape[-1]), dtype=object)
 
     paramsTf = np.zeros((4, gratingRes.shape[-1]))
+    # paramsTfSplit = np.zeros((8, gratingRes.shape[-1]))
     paramsTfSplit = np.zeros((8, gratingRes.shape[-1]))
     varsTf = np.zeros((3, gratingRes.shape[-1]))
     pvalTf = np.zeros(gratingRes.shape[-1])
     TunersTf = np.empty((2, gratingRes.shape[-1]), dtype=object)
 
     paramsSf = np.zeros((4, gratingRes.shape[-1]))
+    # paramsSfSplit = np.zeros((8, gratingRes.shape[-1]))
     paramsSfSplit = np.zeros((8, gratingRes.shape[-1]))
     varsSf = np.zeros((3, gratingRes.shape[-1]))
     pvalSf = np.zeros(gratingRes.shape[-1])
     TunersSf = np.empty((2, gratingRes.shape[-1]), dtype=object)
 
     paramsCon = np.zeros((4, gratingRes.shape[-1]))
+    # paramsConSplit = np.zeros((6, gratingRes.shape[-1]))
     paramsConSplit = np.zeros((6, gratingRes.shape[-1]))
     varsCon = np.zeros((3, gratingRes.shape[-1]))
     pvalCon = np.zeros(gratingRes.shape[-1])
@@ -172,32 +176,36 @@ for currSession in sessions:
     for n in fittingRange:
 
         sig, res_ori, res_freq, res_spatial, res_con = run_complete_analysis(
-            gratingRes, data, ts, quietI, activeI, n,True,True,True,False
+            gratingRes, data, ts, quietI, activeI, n,True,True,True,True
         )
 
         respP[n] = sig[0]
         respDirection[n] = sig[1]
 
-        paramsOri[:, n] = res_ori[0]
-        paramsOriSplit[:, n] = res_ori[1]
+        paramsOri[:, n] = res_ori[0]        
+        paramsOriSplit[:, n,0] = res_ori[1][[0, 2, 4, 5, 6]]
+        paramsOriSplit[:, n,1] = res_ori[1][[1, 3, 4, 5, 6]]
         varsOri[:, n] = res_ori[2:5]
         pvalOri[n] = res_ori[6]
         TunersOri[:, n] = res_ori[7:]
 
-        paramsTf[:, n] = res_freq[0]
-        paramsTfSplit[:, n] = res_freq[1]
+        paramsTf[:, n] = res_freq[0]        
+        paramsTfSplit[:, n,0] = res_freq[1][::2]
+        paramsTfSplit[:, n,1] = res_freq[1][1::2]
         varsTf[:, n] = res_freq[2:5]
         pvalTf[n] = res_freq[6]
         TunersTf[:, n] = res_freq[7:]
 
-        paramsSf[:, n] = res_spatial[0]
-        paramsSfSplit[:, n] = res_spatial[1]
+        paramsSf[:, n] = res_spatial[0]        
+        paramsSfSplit[:, n,0] = res_spatial[1][::2]
+        paramsSfSplit[:, n,1] = res_spatial[1][1::2]
         varsSf[:, n] = res_spatial[2:5]
         pvalSf[n] = res_spatial[6]
         TunersSf[:, n] = res_spatial[7:]
 
-        paramsCon[:, n] = res_con[0]
-        paramsConSplit[:, n] = res_con[1]
+        paramsCon[:, n] = res_con[0]        
+        paramsConSplit[:, n,0] = res_con[1][[0, 2, 4, 5]]
+        paramsConSplit[:, n,1] = res_con[1][[1, 3, 4, 5]]
         varsCon[:, n] = res_con[2:5]
         pvalCon[n] = res_con[6]
         TunersCon[:, n] = res_con[7:]
