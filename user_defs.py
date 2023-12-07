@@ -6,6 +6,8 @@ Created on Thu Nov  3 09:35:05 2022
 """
 from suite2p import default_ops
 import pandas as pd
+import pathlib
+import os
 
 # define directories # Change to a different file
 def define_directories():
@@ -60,10 +62,10 @@ def define_directories():
 
     directoryDb = {
         "dataDefFile": "D:\\preprocess.csv",
-        "preprocessedDataDir": "Z:\\ProcessedData\\",
+        "preprocessedDataDir": "Z:\\RawData\\", # "D:\\Test\\",
         # "preprocessedDataDir": "Z://ProcessedData//",
         "zstackDir": "Z:\\RawData\\",
-        "metadataDir": "Z:\\RawData\\",
+        "metadataDir": "Z:\\RawData\\"#"D:\\Test\\" #",
     }
     return (
         directoryDb  # dataDefFile, preprocessedDataDir, zstackDir, metadataDir
@@ -124,7 +126,7 @@ def create_ephys_processing_ops():
     pass
 
 
-def create_ops_boutton_registration(filePath):
+def create_ops_boutton_registration(filePath, saveDir = None):
     ops = default_ops()
     ops["data_path"] = filePath[1:]
 
@@ -142,9 +144,19 @@ def create_ops_boutton_registration(filePath):
     ops["nonrigid"] = True
     # run for only X number frames
     # ops['frames_include'] = 1000
+    
+    ops["reg_tif"] =  True
+    ops["reg_tif_chan2"] =  True
+    
 
     # set save folder
-    ops["save_path0"] = filePath[0]
+    if (saveDir is None):
+        ops["save_path0"] = filePath[0]
+    else:
+        # get rid of first path
+        p = pathlib.Path(filePath[0])        
+        ops["save_path0"] = os.path.join(saveDir,*p.parts[2:])
+        
 
     # localised optioed
     ops["delete_extra_frames"] = False
@@ -166,6 +178,10 @@ def create_fitting_ops():
         "active_quantile": 0.2,
         "quiet_quantile": 0.01,
         "save_dir": r"D:\fitting_test\plots",
+        "fitOri": True,
+        "fitTf": True,
+        "fitSf": True,
+        "fitContrast": True
     }
 
     return ops
@@ -225,41 +241,41 @@ def directories_to_register():
         #     "Experiments": [1, 2, 3],
         # },
         #############################################
-        {
-            "Name": "Janus",
-            "Date": "2023-02-08",
-            "Experiments": [1, 2, 3, 4, 5, 6],
-        },
-        {
-            "Name": "Notos",
-            "Date": "2023-05-23",
-            "Experiments": [2, 3, 4, 5],
-        },
-        {
-            "Name": "Notos",
-            "Date": "2023-06-02",
-            "Experiments": [2, 3, 4, 5],
-        },
-        {
-            "Name": "Notos",
-            "Date": "2023-06-06",
-            "Experiments": [2, 3, 4, 5, 6],
-        },
-        {
-            "Name": "Notos",
-            "Date": "2023-06-09",
-            "Experiments": [2, 3, 4, 5, 6],
-        },
-        {
-            "Name": "Morpheus",
-            "Date": "2023-05-25",
-            "Experiments": [2, 3, 4, 5],
-        },
-        {
-            "Name": "Morpheus",
-            "Date": "2023-06-05",
-            "Experiments": [2, 3, 4, 5, 6],
-        },
+        # {
+        #     "Name": "Janus",
+        #     "Date": "2023-02-08",
+        #     "Experiments": [1, 2, 3, 4, 5, 6],
+        # },
+        # {
+        #     "Name": "Notos",
+        #     "Date": "2023-05-23",
+        #     "Experiments": [2, 3, 4, 5],
+        # },
+        # {
+        #     "Name": "Notos",
+        #     "Date": "2023-06-02",
+        #     "Experiments": [2, 3, 4, 5],
+        # },
+        # {
+        #     "Name": "Notos",
+        #     "Date": "2023-06-06",
+        #     "Experiments": [2, 3, 4, 5, 6],
+        # },
+        # {
+        #     "Name": "Notos",
+        #     "Date": "2023-06-09",
+        #     "Experiments": [2, 3, 4, 5, 6],
+        # },
+        # {
+        #     "Name": "Morpheus",
+        #     "Date": "2023-05-25",
+        #     "Experiments": [2, 3, 4, 5],
+        # },
+        # {
+        #     "Name": "Morpheus",
+        #     "Date": "2023-06-05",
+        #     "Experiments": [2, 3, 4, 5, 6],
+        # },
         {
             "Name": "Morpheus",
             "Date": "2023-06-08",
@@ -285,62 +301,63 @@ def directories_to_register():
             "Date": "2023-07-26",
             "Experiments": [1, 2, 3, 4, 5, 6],
         },
-        # {
-        #     "Name": "Memphis",
-        #     "Date": "2023-08-21",
-        #     "Experiments": [2, 3, 4, 5, 6],
-        # },
-        # {
-        #     "Name": "Memphis",
-        #     "Date": "2023-08-22",
-        #     "Experiments": [1, 3, 4],
-        # },
-        # {
-        #     "Name": "Memphis",
-        #     "Date": "2023-08-30",
-        #     "Experiments": [2, 3, 4, 5, 6, 7],
-        # },
-        # {
-        #     "Name": "Memphis",
-        #     "Date": "2023-08-31",
-        #     "Experiments": [2, 3, 4, 5, 6],
-        # },
-        # {
-        #     "Name": "Memphis",
-        #     "Date": "2023-09-05",
-        #     "Experiments": [2, 3, 4, 5, 6],
-        # },
-        # {
-        #     "Name": "Memphis",
-        #     "Date": "2023-09-08",
-        #     "Experiments": [2, 3],
-        # },
-        # {
-        #     "Name": "Memphis",
-        #     "Date": "2023-09-18",
-        #     "Experiments": [2, 3, 4, 5],
-        # },
-        # {
-        #     "Name": "Memphis",
-        #     "Date": "2023-09-21",
-        #     "Experiments": [2, 3, 4, 5],
-        # },
-        # {
-        #     "Name": "Memphis",
-        #     "Date": "2023-09-27",
-        #     "Experiments": [2, 3, 4, 5],
-        # },
-        # {
-        #     "Name": "Memphis",
-        #     "Date": "2023-10-05",
-        #     "Experiments": [1, 2, 3, 4, 5, 6, 7],
-        # },
-        # {
-        #     "Name": "Memphis",
-        #     "Date": "2023-10-18",
-        #     "Experiments": [1, 2, 3, 4],
-        # },
-    ]
+        {
+            "Name": "Memphis",
+            "Date": "2023-08-21",
+            "Experiments": [2, 3, 4, 5, 6],
+        },
+        {
+            "Name": "Memphis",
+            "Date": "2023-08-22",
+            "Experiments": [1, 3, 4],
+        },
+        {
+            "Name": "Memphis",
+            "Date": "2023-08-30",
+            "Experiments": [2, 3, 4, 5, 6, 7],
+        },
+        {
+            "Name": "Memphis",
+            "Date": "2023-08-31",
+            "Experiments": [2, 3, 4, 5, 6],
+        },
+        {
+            "Name": "Memphis",
+            "Date": "2023-09-05",
+            "Experiments": [2, 3, 4, 5, 6],
+        },
+        {
+            "Name": "Memphis",
+            "Date": "2023-09-08",
+            "Experiments": [2, 3],
+        },
+        {
+            "Name": "Memphis",
+            "Date": "2023-09-18",
+            "Experiments": [2, 3, 4, 5],
+        },
+        {
+            "Name": "Memphis",
+            "Date": "2023-09-21",
+            "Experiments": [2, 3, 4, 5],
+        },
+        {
+            "Name": "Memphis",
+            "Date": "2023-09-27",
+            "Experiments": [2, 3, 4, 5],
+        },
+        {
+            "Name": "Memphis",
+            "Date": "2023-10-05",
+            "Experiments": [1, 2, 3, 4, 5, 6, 7],
+        },
+        {
+            "Name": "Memphis",
+            "Date": "2023-10-18",
+            "Experiments": [1, 2, 3, 4],
+        },
+    ]    
+    
     return pd.DataFrame(dirDefs)
 
 
@@ -350,11 +367,11 @@ def directories_to_fit():
         {
             "Name": "Io",
             "Date": "2023-02-13",
-            "SpecificNeurons": [],
+            "SpecificNeurons": [32],
         },
         {"Name": "Io", "Date": "2023-02-15", "SpecificNeurons": []},
         {"Name": "Io", "Date": "2023-02-20", "SpecificNeurons": []},
-        {"Name": "Io", "Date": "2023-05-22", "SpecificNeurons": []},
+        # {"Name": "Io", "Date": "2023-05-22", "SpecificNeurons": []},
         {"Name": "Janus", "Date": "2023-02-14", "SpecificNeurons": []},
         {"Name": "Janus", "Date": "2023-02-22", "SpecificNeurons": []},
         # # neurons
@@ -380,7 +397,13 @@ def directories_to_fit():
         {"Name": "Quille", "Date": "2023-08-24", "SpecificNeurons": []},
         {"Name": "Quille", "Date": "2023-09-07", "SpecificNeurons": []},
     ]
-
+    dirDefs = [
+        {
+            "Name": "Io",
+            "Date": "2023-02-13",
+            "SpecificNeurons": [],
+        }
+        ]
     return dirDefs
 
 
