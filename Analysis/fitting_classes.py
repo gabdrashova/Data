@@ -944,7 +944,8 @@ class GammaTuner(BaseTuner):
         return (
             np.nanmin(avgy),
             np.nanmax(avgy),
-            1,            
+            1,    
+            0,
             2,
         )
 
@@ -954,13 +955,15 @@ class GammaTuner(BaseTuner):
             (
                 -np.inf,
                 0,
-                0.01,                
+                0.01,   
+                -10,
                 1,
             ),
             (
                 np.max(y),
                 np.max(y),
-                100,                
+                100,  
+                0,
                 100,
             ),  # np.nanmax(y),  # np.nanmax(y),
         )
@@ -1012,6 +1015,8 @@ class GammaTuner(BaseTuner):
                     p0_[2],
                     p0_[3],
                     p0_[3],
+                    p0_[4],
+                    p0_[4],
                     
                 )
 
@@ -1025,6 +1030,8 @@ class GammaTuner(BaseTuner):
                         bounds[0][2],
                         bounds[0][3],
                         bounds[0][3],
+                        bounds[0][4],
+                        bounds[0][4],
                         
                     ),
                     (
@@ -1036,6 +1043,8 @@ class GammaTuner(BaseTuner):
                         bounds[1][2],
                         bounds[1][3],
                         bounds[1][3],
+                        bounds[1][4],
+                        bounds[1][4],
                         
                     ),
                 )
@@ -1049,6 +1058,8 @@ class GammaTuner(BaseTuner):
                     p0[2],
                     p0[3],
                     p0[3],
+                    p0[4],
+                    p0[4],
                     
                 )
 
@@ -1062,6 +1073,8 @@ class GammaTuner(BaseTuner):
                         bounds[0][2],
                         bounds[0][3],
                         bounds[0][3],
+                        bounds[0][4],
+                        bounds[0][4],
                         
                     ),
                     (
@@ -1073,6 +1086,8 @@ class GammaTuner(BaseTuner):
                         bounds[1][2],
                         bounds[1][3],
                         bounds[1][3],
+                        bounds[1][4],
+                        bounds[1][4],
                         
                     ),
                 )
@@ -1084,18 +1099,18 @@ class GammaTuner(BaseTuner):
         else:
             return self.gamma(x, *self.props[[1, 3, 5, 7, 9]])
 
-    def gamma(self, s, r0, A, a, n):
-        # r0 = np.float32(r0)
-        # A = np.float32(A)
-        # a = np.float32(a)
-        tau = 0
-        # n = int(n)
-        res = r0 + A * (
-            (((a * (s - tau)) ** n) * np.exp(-a * (s - tau)))
-            / ((n**n) * np.exp(-n))
-        )
+    # def gamma(self, s, r0, A, a, n):
+    #     # r0 = np.float32(r0)
+    #     # A = np.float32(A)
+    #     # a = np.float32(a)
+    #     tau = 0
+    #     # n = int(n)
+    #     res = r0 + A * (
+    #         (((a * (s - tau)) ** n) * np.exp(-a * (s - tau)))
+    #         / ((n**n) * np.exp(-n))
+    #     )
 
-        return res
+    #     return res
 
     def gamma_split(self, s, r0q, r0a, Aq, Aa, aq, aa, nq, na):
         sep = self.sep
@@ -1121,17 +1136,17 @@ class GammaTuner(BaseTuner):
 
         return res
 
-    # def gamma(self, s, r0, A, a, tau, n):
-    #     # r0 = np.float32(r0)
-    #     # A = np.float32(A)
-    #     # a = np.float32(a)
-    #     n = int(n)
-    #     res = r0 + A * (
-    #         (((a * (s - tau)) ** n) * np.exp(-a * (s - tau)))
-    #         / ((n**n) * np.exp(-n))
-    #     )
+    def gamma(self, s, r0, A, a, tau, n):
+        # r0 = np.float32(r0)
+        # A = np.float32(A)
+        # a = np.float32(a)
+        n = int(n)
+        res = r0 + A * (
+            (((a * (s - tau)) ** n) * np.exp(-a * (s - tau)))
+            / ((n**n) * np.exp(-n))
+        )
 
-    #     return res
+        return res
 
     # def gamma_split(self, s, r0q, r0a, Aq, Aa, aq, aa, tauq, taua, nq, na):
     #     sep = self.sep

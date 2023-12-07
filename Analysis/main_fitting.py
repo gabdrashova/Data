@@ -103,33 +103,45 @@ for currSession in sessions:
     respP = np.zeros(gratingRes.shape[-1])
     respDirection = np.zeros(gratingRes.shape[-1])
 
-    paramsOri = np.zeros((5, gratingRes.shape[-1]))
+    paramsOri = np.zeros((gratingRes.shape[-1],5))
     # paramsOriSplit = np.zeros((7, gratingRes.shape[-1]))
-    paramsOriSplit = np.zeros((5, gratingRes.shape[-1],2))
-    varsOri = np.zeros((3, gratingRes.shape[-1]))
+    paramsOriSplit = np.zeros((gratingRes.shape[-1],5,2))
+    # varsOri = np.zeros((3, gratingRes.shape[-1]))
+    varOriConst = np.zeros(gratingRes.shape[-1])
+    varOriOne = np.zeros(gratingRes.shape[-1])
+    varOriSplit = np.zeros(gratingRes.shape[-1])
     pvalOri = np.zeros(gratingRes.shape[-1])
-    TunersOri = np.empty((2, gratingRes.shape[-1]), dtype=object)
+    TunersOri = np.empty((gratingRes.shape[-1],2), dtype=object)
 
-    paramsTf = np.zeros((4, gratingRes.shape[-1]))
+    paramsTf = np.zeros((gratingRes.shape[-1],4))
     # paramsTfSplit = np.zeros((8, gratingRes.shape[-1]))
-    paramsTfSplit = np.zeros((8, gratingRes.shape[-1]))
-    varsTf = np.zeros((3, gratingRes.shape[-1]))
+    paramsTfSplit = np.zeros((gratingRes.shape[-1]4,2))
+    # varsTf = np.zeros((3, gratingRes.shape[-1]))
+    varTfConst = np.zeros(gratingRes.shape[-1])
+    varTfOne = np.zeros(gratingRes.shape[-1])
+    varTfSplit = np.zeros(gratingRes.shape[-1])
     pvalTf = np.zeros(gratingRes.shape[-1])
-    TunersTf = np.empty((2, gratingRes.shape[-1]), dtype=object)
+    TunersTf = np.empty((gratingRes.shape[-1],2), dtype=object)
 
-    paramsSf = np.zeros((4, gratingRes.shape[-1]))
+    paramsSf = np.zeros((gratingRes.shape[-1],4))
     # paramsSfSplit = np.zeros((8, gratingRes.shape[-1]))
-    paramsSfSplit = np.zeros((8, gratingRes.shape[-1]))
-    varsSf = np.zeros((3, gratingRes.shape[-1]))
+    paramsSfSplit = np.zeros((gratingRes.shape[-1],4,2))
+    # varsSf = np.zeros((3, gratingRes.shape[-1]))
+    varSfConst = np.zeros(gratingRes.shape[-1])
+    varSfOne = np.zeros(gratingRes.shape[-1])
+    varSfSplit = np.zeros(gratingRes.shape[-1])
     pvalSf = np.zeros(gratingRes.shape[-1])
-    TunersSf = np.empty((2, gratingRes.shape[-1]), dtype=object)
+    TunersSf = np.empty((gratingRes.shape[-1],2), dtype=object)
 
-    paramsCon = np.zeros((4, gratingRes.shape[-1]))
+    paramsCon = np.zeros((gratingRes.shape[-1],4))
     # paramsConSplit = np.zeros((6, gratingRes.shape[-1]))
-    paramsConSplit = np.zeros((6, gratingRes.shape[-1]))
-    varsCon = np.zeros((3, gratingRes.shape[-1]))
+    paramsConSplit = np.zeros((gratingRes.shape[-1],4,2))
+    # varsCon = np.zeros((3, gratingRes.shape[-1]))
+    varConConst = np.zeros(gratingRes.shape[-1])
+    varConOne = np.zeros(gratingRes.shape[-1])
+    varConSplit = np.zeros(gratingRes.shape[-1])
     pvalCon = np.zeros(gratingRes.shape[-1])
-    TunersCon = np.empty((2, gratingRes.shape[-1]), dtype=object)
+    TunersCon = np.empty((gratingRes.shape[-1],2), dtype=object)
 
     fittingRange = range(0, gratingRes.shape[-1])
     # check if want to run only some neurons
@@ -171,70 +183,94 @@ for currSession in sessions:
             varsCon = np.load(os.path.join(saveDir, "fit.con.vars.npy"))
             pvalCon = np.load(os.path.join(saveDir, "fit.con.pval.npy"))
         except:
-            pass
+            pass    
 
     for n in fittingRange:
 
         sig, res_ori, res_freq, res_spatial, res_con = run_complete_analysis(
-            gratingRes, data, ts, quietI, activeI, n,True,True,True,True
+            gratingRes, data, ts, quietI, activeI, n,ops["fitOri"],ops["fitTf"],ops["fitSf"],ops["fitContrast"]
         )
 
         respP[n] = sig[0]
         respDirection[n] = sig[1]
 
-        paramsOri[:, n] = res_ori[0]        
-        paramsOriSplit[:, n,0] = res_ori[1][[0, 2, 4, 5, 6]]
-        paramsOriSplit[:, n,1] = res_ori[1][[1, 3, 4, 5, 6]]
-        varsOri[:, n] = res_ori[2:5]
+        paramsOri[ n,:] = res_ori[0]        
+        paramsOriSplit[n,:,0] = res_ori[1][[0, 2, 4, 5, 6]]
+        paramsOriSplit[n,:,1] = res_ori[1][[1, 3, 4, 5, 6]]
+        # varsOri[:, n] = res_ori[2:5]
+        varOriConst[n] = res_ori[2]
+        varOriOne[n] = res_ori[3]
+        varOriSplit[n] = res_ori[4]
         pvalOri[n] = res_ori[6]
-        TunersOri[:, n] = res_ori[7:]
+        TunersOri[n,:] = res_ori[7:]
 
-        paramsTf[:, n] = res_freq[0]        
-        paramsTfSplit[:, n,0] = res_freq[1][::2]
-        paramsTfSplit[:, n,1] = res_freq[1][1::2]
-        varsTf[:, n] = res_freq[2:5]
+        paramsTf[n,:] = res_freq[0]        
+        paramsTfSplit[n,:,0] = res_freq[1][::2]
+        paramsTfSplit[n,:,1] = res_freq[1][1::2]
+        # varsTf[:, n] = res_freq[2:5]
+        varTfConst[n] = res_freq[2]
+        varTfOne[n] = res_freq[3]
+        varTfSplit[n] = res_freq[4]
         pvalTf[n] = res_freq[6]
-        TunersTf[:, n] = res_freq[7:]
+        TunersTf[n,:] = res_freq[7:]
 
-        paramsSf[:, n] = res_spatial[0]        
-        paramsSfSplit[:, n,0] = res_spatial[1][::2]
-        paramsSfSplit[:, n,1] = res_spatial[1][1::2]
-        varsSf[:, n] = res_spatial[2:5]
+        paramsSf[n,:] = res_spatial[0]        
+        paramsSfSplit[n,:,0] = res_spatial[1][::2]
+        paramsSfSplit[n,:,1] = res_spatial[1][1::2]
+        # varsSf[:, n] = res_spatial[2:5]
+        varSfConst[n] = res_spatial[2]
+        varSfOne[n] = res_spatial[3]
+        varSfSplit[n] = res_spatial[4]
         pvalSf[n] = res_spatial[6]
-        TunersSf[:, n] = res_spatial[7:]
+        TunersSf[n,:] = res_spatial[7:]
 
-        paramsCon[:, n] = res_con[0]        
-        paramsConSplit[:, n,0] = res_con[1][[0, 2, 4, 5]]
-        paramsConSplit[:, n,1] = res_con[1][[1, 3, 4, 5]]
-        varsCon[:, n] = res_con[2:5]
+        paramsCon[n,:] = res_con[0]        
+        paramsConSplit[n,:,0] = res_con[1][[0, 2, 4, 5]]
+        paramsConSplit[n,:,1] = res_con[1][[1, 3, 4, 5]]
+        # varsCon[:, n] = res_con[2:5]
+        varConConst[n] = res_con[2]
+        varConOne[n] = res_con[3]
+        varConSplit[n] = res_con[4]
         pvalCon[n] = res_con[6]
-        TunersCon[:, n] = res_con[7:]
+        TunersCon[n,:] = res_con[7:]
         
         
 
 
-    np.save(os.path.join(saveDir, "resp.pval.npy"), respP)
-    np.save(os.path.join(saveDir, "resp.direction.npy"), respDirection)
-
-    np.save(os.path.join(saveDir, "fit.ori.params.npy"), paramsOri)
-    np.save(os.path.join(saveDir, "fit.ori.split.params.npy"), paramsOriSplit)
-    np.save(os.path.join(saveDir, "fit.ori.vars.npy"), varsOri)
-    np.save(os.path.join(saveDir, "fit.ori.pval.npy"), pvalOri)
-
-    np.save(os.path.join(saveDir, "fit.tf.params.npy"), paramsTf)
-    np.save(os.path.join(saveDir, "fit.tf.split.params.npy"), paramsTfSplit)
-    np.save(os.path.join(saveDir, "fit.tf.vars.npy"), varsTf)
-    np.save(os.path.join(saveDir, "fit.tf.pval.npy"), pvalTf)
-
-    np.save(os.path.join(saveDir, "fit.sf.params.npy"), paramsSf)
-    np.save(os.path.join(saveDir, "fit.sf.split.params.npy"), paramsSfSplit)
-    np.save(os.path.join(saveDir, "fit.sf.vars.npy"), varsSf)
-    np.save(os.path.join(saveDir, "fit.sf.pval.npy"), pvalSf)
-
-    np.save(os.path.join(saveDir, "fit.con.params.npy"), paramsCon)
-    np.save(os.path.join(saveDir, "fit.con.split.params.npy"), paramsConSplit)
-    np.save(os.path.join(saveDir, "fit.con.vars.npy"), varsCon)
-    np.save(os.path.join(saveDir, "fit.con.pval.npy"), pvalCon)
+    np.save(os.path.join(saveDir, "gratingResp.pVal.npy"), respP)
+    np.save(os.path.join(saveDir, "gratingResp.direction.npy"), respDirection)
+    
+    if (ops["fitOri"]):
+        np.save(os.path.join(saveDir, "gratingOriTuning.params.params.npy"), paramsOri)
+        np.save(os.path.join(saveDir, "gratingOriTuning.paramsRunning.npy"), paramsOriSplit)    
+        np.save(os.path.join(saveDir, "gratingOriTuning.expVar.constant.npy"), varOriConst)
+        np.save(os.path.join(saveDir, "gratingOriTuning.expVar.noSplit.npy"), varOriOne)
+        np.save(os.path.join(saveDir, "gratingOriTuning.expVar.runningSplit.npy"), varOriSplit)
+        np.save(os.path.join(saveDir, "gratingOriTuning.pVal.runningSplit.npy"), pvalOri)
+    
+    if (ops["fitTf"]):
+        np.save(os.path.join(saveDir, "gratingTfTuning.params.params.npy"), paramsTf)
+        np.save(os.path.join(saveDir, "gratingTfTuning.paramsRunning.npy"), paramsTfSplit)    
+        np.save(os.path.join(saveDir, "gratingTfTuning.expVar.constant.npy"), varTfConst)
+        np.save(os.path.join(saveDir, "gratingTfTuning.expVar.noSplit.npy"), varTfOne)
+        np.save(os.path.join(saveDir, "gratingTfTuning.expVar.runningSplit.npy"), varTfSplit)
+        np.save(os.path.join(saveDir, "gratingTfTuning.pVal.runningSplit.npy"), pvalTf)  
+    
+    if (ops["fitSf"]):
+        np.save(os.path.join(saveDir, "gratingSfTuning.params.params.npy"), paramsSf)
+        np.save(os.path.join(saveDir, "gratingSfTuning.paramsRunning.npy"), paramsSfSplit)    
+        np.save(os.path.join(saveDir, "gratingSfTuning.expVar.constant.npy"), varSfConst)
+        np.save(os.path.join(saveDir, "gratingSfTuning.expVar.noSplit.npy"), varSfOne)
+        np.save(os.path.join(saveDir, "gratingSfTuning.expVar.runningSplit.npy"), varSfSplit)
+        np.save(os.path.join(saveDir, "gratingSfTuning.pVal.runningSplit.npy"), pvalSf)  
+    
+    if (ops["fitContrast"]):
+        np.save(os.path.join(saveDir, "gratingContrastTunin.params.params.npy"), paramsCon)
+        np.save(os.path.join(saveDir, "gratingContrastTunin.paramsRunning.npy"), paramsConSplit)    
+        np.save(os.path.join(saveDir, "gratingContrastTunin.expVar.constant.npy"), varConConst)
+        np.save(os.path.join(saveDir, "gratingContrastTunin.expVar.noSplit.npy"), varConOne)
+        np.save(os.path.join(saveDir, "gratingContrastTunin.expVar.runningSplit.npy"), varConSplit)
+        np.save(os.path.join(saveDir, "gratingContrastTunin.pVal.runningSplit.npy"), pvalCon)
     
 
 #%%plotting
