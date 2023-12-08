@@ -989,34 +989,34 @@ def process_metadata_directory(
             np.vstack(sparseMaps),
         )
         np.save(
-            os.path.join(saveDirectory, "sparse.st.npy"), np.vstack(sparseSt)
+            os.path.join(saveDirectory, "sparse.startTime.npy"), np.vstack(sparseSt)
         )
         np.save(
-            os.path.join(saveDirectory, "sparse.et.npy"), np.vstack(sparseEt)
+            os.path.join(saveDirectory, "sparse.endTime.npy"), np.vstack(sparseEt)
         )
         np.save(os.path.join(saveDirectory, "sparseArea.edges.npy"), sparseEdges)
     if len(retinalStim) > 0:
         np.save(
-            os.path.join(saveDirectory, "retinal.st.npy"), np.vstack(retinalSt)
+            os.path.join(saveDirectory, "fullField.startTime.npy"), np.vstack(retinalSt)
         )
         np.save(
-            os.path.join(saveDirectory, "retinal.et.npy"), np.vstack(retinalEt)
+            os.path.join(saveDirectory, "fullField.endTime.npy"), np.vstack(retinalEt)
         )
         np.save(
-            os.path.join(saveDirectory, "retinal.stim.npy"),
+            os.path.join(saveDirectory, "fullField.stim.npy"),
             np.vstack(retinalStim),
         )
     if len(gratingsSt) > 0:
         np.save(
-            os.path.join(saveDirectory, "gratings.st.npy"),
+            os.path.join(saveDirectory, "gratings.startTime.npy"),
             np.vstack(gratingsSt),
         )
         np.save(
-            os.path.join(saveDirectory, "gratings.et.npy"),
+            os.path.join(saveDirectory, "gratings.endTime.npy"),
             np.vstack(gratingsEt),
         )
         np.save(
-            os.path.join(saveDirectory, "gratings.ori.npy"),
+            os.path.join(saveDirectory, "gratings.direction.npy"),
             np.vstack(gratingsOri),
         )
         np.save(
@@ -1034,11 +1034,11 @@ def process_metadata_directory(
 
     if len(circleSt) > 0:
         np.save(
-            os.path.join(saveDirectory, "circles.st.npy"),
+            os.path.join(saveDirectory, "circles.startTime.npy"),
             np.vstack(circleSt),
         )
         np.save(
-            os.path.join(saveDirectory, "circles.et.npy"),
+            os.path.join(saveDirectory, "circles.endTime.npy"),
             np.vstack(circleEt),
         )
         np.save(

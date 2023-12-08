@@ -923,7 +923,9 @@ def get_recorded_video_times(di, searchTerms, cleanNames):
     Inds = []
     for i in range(len(cleanNames)):
         Inds.append(log_df[cleanNames[i]].index[log_df[cleanNames[i]].notna()])
-    Inds = pd.array(Inds)
+        
+    
+    #Inds = pd.array(Inds)
 
     # make smaller database without the other non Ni events
     colNiTimes = {}
@@ -931,7 +933,7 @@ def get_recorded_video_times(di, searchTerms, cleanNames):
         removeInds = pd.Index([])
         mini_inds = np.setdiff1d(range(len(Inds) - 1), i)
         dropInds = pd.Index([], dtype=np.int64).append(
-            Inds[mini_inds].tolist()
+            Inds[int(mini_inds)]
         )
         mini_df = log_df.drop(dropInds).reset_index()
 
