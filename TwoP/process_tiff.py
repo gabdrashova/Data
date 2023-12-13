@@ -328,7 +328,7 @@ def register_zstack(
         # Uses the suite2p registration function to align the 10 frames taken
         # per plane to the first frame in each plane.
         res = register_frames(
-            image[i, 0, :, :], image[i, :, :, :].astype(np.int16)
+            image[i, 0, :, :], image[i, :, :, :].astype(np.int16),bidiphase=1
         )
 
         # Calculates the mean of those 10 registered frames per plane.
