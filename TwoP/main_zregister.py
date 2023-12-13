@@ -18,10 +18,13 @@ import pandas as pd
 
 dataEntries = directories_to_register()
 
-for i in range(len(dataEntries)):
-    run_single_registration(dataEntries.iloc[i])
+# for i in range(len(dataEntries)):
+#     try:
+#         run_single_registration(dataEntries.iloc[i])
+#     except:
+        
     
-# Parallel(n_jobs=1, verbose=5)(
-#     delayed(run_single_registration)(dataEntries.iloc[i])
-#     for i in range(len(dataEntries))
-# )
+Parallel(n_jobs=4, verbose=5, max_nbytes=5000, backend='threading')(
+    delayed(run_single_registration)(dataEntries.iloc[i])
+    for i in range(len(dataEntries))
+)

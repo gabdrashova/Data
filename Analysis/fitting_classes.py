@@ -1203,8 +1203,8 @@ class Gauss2DTuner(BaseTuner):
             maxVal,
             maxX,
             maxY,
-            xdiff,
-            ydiff,
+            0.5/2  if self.minR is None else self.minR,#xdiff,
+            0.5/2  if self.minR is None else self.minR,#ydiff,
             0,
             0,
         )
@@ -1236,8 +1236,8 @@ class Gauss2DTuner(BaseTuner):
                 -np.inf,
                 self.maxSpot[1] - 5,  # ,np.nanmin(x[:, 0])
                 self.maxSpot[0] - 5,  # np.nanmin(x[:, 1])
-                0.5 / 2 if self.minR is None else self.minR,
-                0.5 / 2 if self.minR is None else self.minR,
+                0.5/2  if self.minR is None else self.minR,
+                0.5/2 if self.minR is None else self.minR,
                 0,
                 -np.inf,
             ),

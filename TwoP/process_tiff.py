@@ -49,8 +49,8 @@ def _fill_plane_piezo(stack, piezoNorm, i, spacing=1):
 
     """
     # Normalises the piezo trace to the top depth.
-    piezoNorm -= piezoNorm[0]
-
+    piezoNorm -= piezoNorm[0]    
+    
     # Adds the value of the current Z stack plane (equivalent to 1um/plane).
     piezoNorm += i
 
@@ -58,7 +58,14 @@ def _fill_plane_piezo(stack, piezoNorm, i, spacing=1):
     planes = stack.shape[0]
     resolutionx = stack.shape[1]
     resolutiony = stack.shape[2]
-
+    
+    # interpolate
+    ratio = resolutiony/len(piezoNorm)
+    # f = sp.interpolate.interp1d(np.arange(piezoNorm.shape[0]), piezoNorm)
+    # piezoNorm = f(np.arange(0,piezoNorm.shape[0]-1,spacing/10))
+    f = sp.interpolate.interp1d(np.linspace(0,resolutiony-1,len(piezoNorm)), piezoNorm)
+    piezoNorm =  f(np.arange(0,256))
+    
     # Creates a variable that tells the current location in Y (in pixels).
     currPixelY = 0
     # Will contain the slanted image in the current plane.
@@ -68,10 +75,10 @@ def _fill_plane_piezo(stack, piezoNorm, i, spacing=1):
     pixelsPerMoveY = np.ones(len(piezoNorm)) * resolutiony
 
     # Gets the number of pixels per piezo step.
-    numPixelsY = np.round(pixelsPerMoveY / len(piezoNorm)).astype(int)
+    numPixelsY = pixelsPerMoveY / len(piezoNorm)#np.round(pixelsPerMoveY / len(piezoNorm)).astype(int)
 
     # Corrects in case of rounding error.
-    Yerr = resolutiony - sum(numPixelsY)
+    Yerr = resolutiony-1 - sum(numPixelsY)
     numPixelsY[-1] += Yerr
 
     # Gets the end points (in pixels) of each piezo step.
@@ -81,39 +88,59 @@ def _fill_plane_piezo(stack, piezoNorm, i, spacing=1):
         (
             np.arange(0, planes, spacing),
             np.arange(0, resolutiony),
-            np.arange(0, resolutionx),
+            np.arange(0, resolutionx),            
         ),
         stack,
         fill_value=None,
+        method = 'nearest'
     )
-    for d in range(len(piezoNorm)):  # For each piezo step
-        endPointY = pixelsY[
-            d
-        ]  # Gets the end point for the current piezo step.
-        depth = piezoNorm[d]  # Gets the current depth from the piezo trace.
-
+    for yt in range(len(piezoNorm)):
+        depth = piezoNorm[yt]
+        
         # If beyond the depth, takes the final frame.
         if depth > planes - 1:
             depth = planes - 1
         # If below the topmost frame, takes the first one.
         if depth < 0:
             depth = 0
-        # For every pixel within the current piezo step.
-        for yt in np.arange(currPixelY, endPointY):
-            # print (depth,yt)
-            # Determines the approximate pixel values along one y line
-            # given the depth.
-            line = interp(
-                (
-                    depth,
-                    yt,
-                    np.arange(0, resolutionx),
+        
+        line = interp(
+                    (
+                        depth,
+                        yt,
+                        np.arange(0, resolutionx),
+                    )
                 )
-            )
-            # Appends the newly created line to the slanted image stack.
-            slantImg[yt, 0:resolutionx] = line
-        # Updates the current location in y.
-        currPixelY += numPixelsY[d]
+        
+        slantImg[int(yt), 0:resolutionx] = line
+    # for d in range(len(piezoNorm)):  # For each piezo step
+    #     endPointY = pixelsY[
+    #         d
+    #     ]  # Gets the end point for the current piezo step.
+    #     depth = piezoNorm[d]  # Gets the current depth from the piezo trace.
+
+    #     # If beyond the depth, takes the final frame.
+    #     if depth > planes - 1:
+    #         depth = planes - 1
+    #     # If below the topmost frame, takes the first one.
+    #     if depth < 0:
+    #         depth = 0
+    #     # For every pixel within the current piezo step.
+    #     for yt in np.arange(currPixelY, endPointY):
+    #         # print (depth,yt)
+    #         # Determines the approximate pixel values along one y line
+    #         # given the depth.
+    #         line = interp(
+    #             (
+    #                 depth,
+    #                 yt,
+    #                 np.arange(0, resolutionx),
+    #             )
+    #         )
+    #         # Appends the newly created line to the slanted image stack.
+    #         slantImg[np.floor(yt), 0:resolutionx] = line
+    #     # Updates the current location in y.
+    #     currPixelY += numPixelsY[d]
 
     return slantImg
 
