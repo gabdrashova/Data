@@ -23,21 +23,23 @@ Then you'll get this version of suite2p installed. I will add it to the pip thou
 import time, os, shutil
 import numpy as np
 from suite2p.registration import register, rigid, bidiphase
-from suite2p.io import tiff_to_binary, BinaryRWFile
+from suite2p.io import tiff_to_binary, BinaryFile#BinaryRWFile#
 from suite2p import io
 from suite2p import default_ops
 from tifffile import imread
 import matplotlib.pyplot as plt
 from natsort import natsorted
-import imp
+# import imp
 from suite2p import default_ops
 from suite2p.registration import utils, rigid
 from suite2p import run_s2p
 from registration_defs import *
+import contextlib
 from runners import read_directory_dictionary
 from Data.user_defs import define_directories, create_ops_boutton_registration
 from os import path
 import glob
+import traceback
 
 
 def run_single_registration(dataEntry):
@@ -53,21 +55,26 @@ def run_single_registration(dataEntry):
     None.
 
     """
-    defs = define_directories()
-    s2pDir = defs["metadataDir"]
-    filePath = read_directory_dictionary(dataEntry, s2pDir)
-    ops = create_ops_boutton_registration(filePath)
-    if ops["run_registration"]:
-        newOps = z_register_one_file(ops)
-    else:
-        lastPlane = glob.glob(
-            os.path.join(ops["save_path0"], "suite2p", "plane*")
-        )[-1]
-        newOps = np.load(
-            os.path.join(lastPlane, "ops.npy"), allow_pickle=True
-        ).item()
-    if ops["run_detection"]:
-        run_s2p(ops=newOps)
+    try:
+        defs = define_directories()
+        s2pDir = defs["metadataDir"]
+        saveDir = defs["preprocessedDataDir"]
+        filePath = read_directory_dictionary(dataEntry, s2pDir)
+        ops = create_ops_boutton_registration(filePath,saveDir = saveDir)
+        if ops["run_registration"]:
+            newOps = z_register_one_file(ops)
+        else:
+            lastPlane = glob.glob(
+                os.path.join(ops["save_path0"], "suite2p", "plane*")
+            )[-1]
+            newOps = np.load(
+                os.path.join(lastPlane, "ops.npy"), allow_pickle=True
+            ).item()
+        if ops["run_detection"]:
+            run_s2p(ops=newOps)
+    except:
+        print (f'Could not run {dataEntry}.\n')
+        print(traceback.format_exc())
 
 
 def z_register_one_file(ops):
@@ -92,7 +99,23 @@ def z_register_one_file(ops):
     os.makedirs(save_folder, exist_ok=True)
 
     ops = tiff_to_binary(ops)
+    
+    #set directories  and definitions 
+    raw = ops.get("keep_movie_raw") and "raw_file" in ops and os.path.isfile(
+        ops["raw_file"])
+    reg_file = ops["reg_file"]
+    raw_file = ops.get("raw_file", 0) if raw else reg_file
+    if ops["nchannels"] > 1:
+        reg_file_chan2 = ops["reg_file_chan2"]
+        raw_file_chan2 = ops.get("raw_file_chan2", 0) if raw else reg_file_chan2
+    else:
+        reg_file_chan2 = reg_file
+        raw_file_chan2 = reg_file
+    n_frames, Ly, Lx = ops["nframes"], ops["Ly"], ops["Lx"]
 
+    null = contextlib.nullcontext()
+    twoc = ops["nchannels"] > 1
+    
     # get plane folders
     plane_folders = natsorted(
         [
@@ -129,10 +152,10 @@ def z_register_one_file(ops):
         align_file = reg_file_chan2 if align_by_chan2 else reg_file
         align_file_raw = raw_file_chan2 if align_by_chan2 else raw_file
         Ly, Lx = ops["Ly"], ops["Lx"]
-
+        
         # M:this part of the code above just does registration etc (what is done with the GUI usually)
         # grab frames
-        with BinaryRWFile(Ly=Ly, Lx=Lx, filename=align_file_raw) as f_align_in:
+        with BinaryFile(Ly=Ly, Lx=Lx, filename=align_file_raw) as f_align_in:
             n_frames = f_align_in.shape[0]
             frames = f_align_in[
                 np.linspace(
@@ -142,7 +165,8 @@ def z_register_one_file(ops):
                     dtype=int,
                 )[:-1]
             ]
-
+        
+        
         # M: this is done to adjust bidirectional shift occuring due to line scanning
         # compute bidiphase shift
         if (
@@ -201,7 +225,8 @@ def z_register_one_file(ops):
             dys[i] = dy
             dxs[i] = dx
 
-    print("shifts of reference images: (y,x) = ", dys, dxs)
+    print("shifts of reference images: (y,x) = ", dys, dxs)    
+
 
     # frames = smooth_reference_stack(frames, ops)
 
@@ -210,16 +235,18 @@ def z_register_one_file(ops):
     # register and choose the best plane match at each time point,
     # in accordance with the reference image of each plane
 
-    imp.reload(utils)
-    imp.reload(rigid)
-    imp.reload(register)
+    # imp.reload(utils)
+    # imp.reload(rigid)
+    # imp.reload(register)
 
     ops["refImg"] = refImgs
     ops_paths_clean = np.delete(ops_paths, ops["ignore_flyback"])
     # Get the correlation between the reference images
-    corrs_all = get_reference_correlation(frames, ops)
-    smooth_images_by_correlation(ops_paths_clean, corrs_all)
+    corrs_all = get_reference_correlation(frames, ops)    
     cmaxRegistrations = []
+    
+    
+    
     for ipl, ops_path in enumerate(ops_paths):
         if ipl in ops["ignore_flyback"]:
             print(">>>> skipping flyback PLANE", ipl)
@@ -227,7 +254,23 @@ def z_register_one_file(ops):
         else:
             print(">>>> registering PLANE", ipl)
         ops = np.load(ops_path, allow_pickle=True).item()
-        ops = register.register_binary(ops, refImg=refImgs)
+        with io.BinaryFile(Ly=Ly, Lx=Lx, filename=raw_file, n_frames=n_frames) \
+            if raw else null as f_raw, \
+         io.BinaryFile(Ly=Ly, Lx=Lx, filename=reg_file, n_frames=n_frames) as f_reg, \
+         io.BinaryFile(Ly=Ly, Lx=Lx, filename=raw_file_chan2, n_frames=n_frames) \
+            if raw and twoc else null as f_raw_chan2,\
+         io.BinaryFile(Ly=Ly, Lx=Lx, filename=reg_file_chan2, n_frames=n_frames) \
+            if twoc else null as f_reg_chan2:
+                registration_outputs = register.registration_wrapper(
+                    f_reg, f_raw=f_raw, f_reg_chan2=f_reg_chan2, f_raw_chan2=f_raw_chan2,
+                    refImg=refImgs, align_by_chan2=align_by_chan2, ops=ops)
+
+                ops = register.save_registration_outputs_to_ops(registration_outputs, ops)
+                
+                meanImgE = register.compute_enhanced_mean_image(
+                ops["meanImg"].astype(np.float32), ops)
+                ops["meanImgE"] = meanImgE
+        #ops = register.register_binary(ops, refImg=refImgs)
         cmaxRegistrations.append(ops["cmax_registration"])
         np.save(ops["ops_path"], ops)
     cmaxs = np.dstack(cmaxRegistrations)
@@ -240,14 +283,13 @@ def z_register_one_file(ops):
     bestCorrRefPlane = np.nanargmax(medianCorr)
     ops = np.load(ops_paths_clean[bestCorrRefPlane], allow_pickle=True).item()
     maxCorrId = ops["zpos_registration"]
-
-    # maxCorrId = np.nanargmax(maxPlaneCorr, 1)
-
+    smooth_images_by_correlation(ops_paths_clean, corrs_all)
+    
     # At this point the files are registered properly according to where they are
     # now we need to go over each zposition and replace the frame on the channel with a weighted
     # frame on the plane it actually is
     # replace_frames_by_zpos(ops, ops_paths, ipl)
-    create_new_plane_file(
+    ops = create_new_plane_file(
         ops_paths_clean,
         maxCorrId,
         bestCorrRefPlane + 1,
@@ -270,14 +312,22 @@ def create_new_plane_file(ops_paths, planeList, selected_plane, delete_extra):
     newOps["raw_file"] = []
     newOps["reg_file"] = newBinFilePath
     newOps["selected_plane"] = selected_plane
+    
+    # remove frames with low maximal correlation value
+    cmax = newOps["cmax_registration"]
+    maxCorr = np.nanmax(cmax,1)
+    newOps["badframes"] = maxCorr<0.01
+    
+    n_frames = len(planeList)
+    
     np.save(newOps["ops_path"], newOps)
-    with BinaryRWFile(
-        Ly=ops0["Ly"], Lx=ops0["Lx"], filename=newBinFilePath
+    with BinaryFile(
+        Ly=ops0["Ly"], Lx=ops0["Lx"], filename=newBinFilePath, n_frames = n_frames
     ) as newFile:
         for pi, p in enumerate(planeList):
             ops = np.load(ops_paths[p], allow_pickle=True).item()
-            with BinaryRWFile(
-                Ly=ops0["Ly"], Lx=ops0["Lx"], filename=ops["reg_file"]
+            with BinaryFile(
+                Ly=ops0["Ly"], Lx=ops0["Lx"], filename=ops["reg_file"], n_frames = n_frames
             ) as planeFile:
                 newFile[pi : pi + 1] = planeFile[pi : pi + 1]
     # rename/delete all the other directories names so they will not be treated
@@ -299,7 +349,7 @@ def replace_frames_by_zpos(ops, ops_paths, plane):
     batch_size = ops["batch_size"]
     possible_z = np.unique(zpos)
 
-    with BinaryRWFile(
+    with BinaryFile(
         Ly=ops["Ly"], Lx=ops["Lx"], filename=reg_file
     ) as f_align_in:
         n_frames = f_align_in.shape[0]
@@ -315,7 +365,7 @@ def replace_frames_by_zpos(ops, ops_paths, plane):
                         continue
                     ops_alt1 = np.load(ops_paths[z], allow_pickle=True).item()
                     reg_file_alt = ops_alt1["reg_file"]
-                    with BinaryRWFile(
+                    with BinaryFile(
                         Ly=ops["Ly"], Lx=ops["Lx"], filename=reg_file_alt
                     ) as f_alt:
                         frames_alt = f_alt[b : min(b + batch_size, n_frames)]
@@ -372,8 +422,9 @@ def smooth_images_by_correlation(ops_paths, corrs_all):
         ops = np.load(ops_paths[ipl], allow_pickle=True).item()
         reg_file = ops["reg_file"]
         batch_size = ops["batch_size"]
-        with BinaryRWFile(
-            Ly=ops["Ly"], Lx=ops["Lx"], filename=reg_file
+        n_frames = ops['nframes']
+        with BinaryFile(
+            Ly=ops["Ly"], Lx=ops["Lx"], filename=reg_file, n_frames=n_frames
         ) as f_main:
             n_frames, Ly, Lx = f_main.shape
 
@@ -382,10 +433,11 @@ def smooth_images_by_correlation(ops_paths, corrs_all):
                 ops_alt1 = np.load(
                     ops_paths[ipl + 1], allow_pickle=True
                 ).item()
-                with BinaryRWFile(
+                with BinaryFile(
                     Ly=ops_alt1["Ly"],
                     Lx=ops_alt1["Lx"],
                     filename=ops_alt1["reg_file"],
+                    n_frames=n_frames
                 ) as f_plus:
                     for b in range(0, n_frames, batch_size):
                         f_main[b : min(b + batch_size, n_frames)] = (
@@ -398,10 +450,11 @@ def smooth_images_by_correlation(ops_paths, corrs_all):
                 ops_alt1 = np.load(
                     ops_paths[ipl - 1], allow_pickle=True
                 ).item()
-                with BinaryRWFile(
+                with BinaryFile(
                     Ly=ops_alt1["Ly"],
                     Lx=ops_alt1["Lx"],
                     filename=ops_alt1["reg_file"],
+                    n_frames=n_frames
                 ) as f_minus:
                     for b in range(0, n_frames, batch_size):
                         f_main[b : min(b + batch_size, n_frames)] = (
@@ -417,15 +470,17 @@ def smooth_images_by_correlation(ops_paths, corrs_all):
                 ops_alt2 = np.load(
                     ops_paths[ipl + 1], allow_pickle=True
                 ).item()
-                with BinaryRWFile(
+                with BinaryFile(
                     Ly=ops_alt1["Ly"],
                     Lx=ops_alt1["Lx"],
                     filename=ops_alt1["reg_file"],
+                    n_frames=n_frames
                 ) as f_minus:
-                    with BinaryRWFile(
+                    with BinaryFile(
                         Ly=ops_alt2["Ly"],
                         Lx=ops_alt2["Lx"],
                         filename=ops_alt2["reg_file"],
+                        n_frames=n_frames
                     ) as f_plus:
                         for b in range(0, n_frames, batch_size):
                             f_main[b : min(b + batch_size, n_frames)] = (
