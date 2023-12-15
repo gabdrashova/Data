@@ -7,7 +7,7 @@ Created on Fri Oct 21 08:39:57 2022
 
 """Runner functions"""
 
-# from suite2p.registration.zalign import compute_zpos
+from suite2p.registration.zalign import compute_zpos
 from joblib import Parallel, delayed
 import numpy as np
 import time
