@@ -214,7 +214,7 @@ def _process_s2p_singlePlane(
             zprofiles = extract_zprofiles(
                 currDir,
                 zstack,
-                neuropil_correction=regPars[1, :],
+                neuropil_correction=regPars[:, :],
                 metadata=processing_metadata,
                 smoothing_factor=2,
                 abs_zero = pops["absZero"])
