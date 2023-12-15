@@ -168,6 +168,9 @@ def _process_s2p_singlePlane(
     # ops file (Hack to avoid random reg directories).
     ops["reg_file"] = os.path.join(currDir, "data.bin")
     ops["ops_path"] = os.path.join(currDir, "ops.npy")
+    
+    isZcorrected = np.zeros(F.shape[1]).astype(bool)
+    
     # Unless there is no Z stack path specified, does Z correction.
     if not (zstackPath is None):
         try:
