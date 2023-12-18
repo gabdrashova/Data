@@ -19,7 +19,7 @@ Created on Wed Aug 31 15:37:13 2022
 
 def get_ops_file(suite2pDir):
     """
-    Loads the ops file from the combined folder in the suite2p folder. Ops file
+    Loads the ops file from the first plane folder in the suite2p folder. Ops file
     is generated directly from suite2p.
 
     Parameters
@@ -33,7 +33,7 @@ def get_ops_file(suite2pDir):
         The suite2p ops dictionary.
 
     """
-    combinedDir = glob.glob(os.path.join(suite2pDir, "combined*"))
+    combinedDir = glob.glob(os.path.join(suite2pDir, "plane*"))
     ops = np.load(
         os.path.join(combinedDir[0], "ops.npy"), allow_pickle=True
     ).item()
