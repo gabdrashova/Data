@@ -1072,9 +1072,7 @@ def process_metadata_directory(
         np.save(
             os.path.join(saveDirectory, "natural.fileNames.npy"),
             np.vstack(naturalFiles),
-        )
-        
-        
+        )        
 
     if len(circleSt) > 0:
         np.save(
