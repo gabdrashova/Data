@@ -71,6 +71,31 @@ def define_directories():
         directoryDb  # dataDefFile, preprocessedDataDir, zstackDir, metadataDir
     )
 
+def define_directories_dlc():
+    """
+    Creates a dictionary containing the directory paths needed for pupil analysis.
+
+    Returns
+    -------
+    directoryDb : dict
+        A dictionary containing the following keys and their respective directory paths:
+        - 'model_path': The directory where the trained model for pupil analysis is located.
+        - 'csvDir': Directory path to the CSV file containing video analysis configurations.
+        - 'rawDataBaseFolder': The base directory where the raw experimental data is stored.
+        - 'destBaseFolder': The base directory where all processed pupil videos will be saved.
+    }
+    """
+    directoryDb = {
+
+        'model_path': r"C:\Users\Experimenter\Deeplabcut_files\MousePupil-SchroederLab-2023-08-02",
+        'csvDir': r"C:\Users\Experimenter\Deeplabcut_files\pupil_analysis\pupil_analysis_config.csv",
+        'rawDataBaseFolder': r"Z:\RawData",
+        'destBaseFolder': r"Z:\ProcessedData"
+
+    }
+    return directoryDb
+
+
 
 def create_2p_processing_ops():
     """
