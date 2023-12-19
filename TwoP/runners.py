@@ -765,31 +765,29 @@ def process_metadata_directory(
                 retinal_stimType[8::13] = "Blue"
                 retinal_stimType[9::13] = "Off"
                 retinal_stimType[10::13] = "Green"
-                retinal_stimType[11::13] = "Off"
+                retinal_stimType[11::13] = "Off"        
                 
-                
-                if propTitles[0] == "NaturalImages":
-                    stimProps = get_stimulus_info(di)
-                    # Gets the start times of each stimulus.
-                    st = frameChanges[::2].reshape(-1, 1).copy()
-                    # Gets the end times  of each stimulus.
-                    et = frameChanges[1::2].reshape(-1, 1).copy()
-                    naturalSt.append(st)
-                    naturalEt.append(et)
-                    naturalFiles.append(
-                        stimProps.FileName.to_numpy()
-                        .reshape(-1, 1)
-                        .astype(str)
-                        .copy()
-                    )
-                    
-                
-                    
 
                 # Adds the data from above to the respective lists.
                 retinalSt.append(frameChanges.reshape(-1, 1).copy())
                 retinalEt.append(retinal_et.reshape(-1, 1).copy())
                 retinalStim.append(retinal_stimType.copy())
+                
+            if propTitles[0] == "NaturalImages":
+                stimProps = get_stimulus_info(di)
+                # Gets the start times of each stimulus.
+                st = frameChanges[::2].reshape(-1, 1).copy()
+                # Gets the end times  of each stimulus.
+                et = frameChanges[1::2].reshape(-1, 1).copy()
+                naturalSt.append(st)
+                naturalEt.append(et)
+                naturalFiles.append(
+                    stimProps.FileName.to_numpy()
+                    .reshape(-1, 1)
+                    .astype(str)
+                    .copy()
+                )
+                
 
             # Gets the circles metadata.
             # TODO: run this in debug mode to see what exact data it gets.
