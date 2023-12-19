@@ -57,7 +57,32 @@ def define_directories():
           for moving gratings these would be: Ori (orientation), SFreq (spatial frequency), TFreq (temporal frequency)
           and Contrast
           Note: These files should be generated automatically when using the Bonsai scripts within this repository.
+      
+    DLCmodelDir : str ["YourDirectoryPath"]
+        The directory where the trained DLC model for pupil analysis is located. The most crucial folder in this directory 
+        is the one that contains files of the last snapshot of the training (e.g., snapshot-440000):
+            - [DLCProjectName]/dlc-models/iteration-0/[ModelName]/train/snapshot*
 
+    DLCdataDefFile : str ["YourDirectoryPath"]
+        Directory path to the CSV file containing video analysis configurations. Ths file has to contain the following information:
+            - Name of the animal.
+            - Date of the experiment.
+            - List of experiment numbers for which analysis is required. Each string can be either "all", a single number, or multiple comma-separated numbers.
+            - analyze_video : Flag (TRUE/FALSE) indicating whether to analyze video.
+            - plot_trajectories Flag indicating whether to plot trajectories.
+            - create_video : Flag indicating whether to create labeled videos.
+            - measure_pupil : Flag indicating whether to perform pupil measurement (diameter, centre coordinates, blinks)
+            - crop_videos: Flag indicating whether to crop the video.
+                
+    rawDataBaseFolder : str ["YourDirectoryPath"]
+        The base directory where the raw experimental data is stored. This directory is used by DLC and is expected to contain: 
+        - video.avi of the video to be analysed
+        
+    destBaseFolder : str ["YourDirectoryPath"]
+        The base directory where all processed pupil videos will be saved. The expected structure for eye video analysis: 
+        - [ProcessedData]/[Animal Name]/[Date]/pupil/dlc/[experiment number] which contains DLC output files
+        - [ProcessedData]/[Animal Name]/[Date]/pupil/xyPos_diameter/[experiment number] which contains pupil measurements (diameter, centre coordinates, blinks)
+          
     """
 
     directoryDb = {
@@ -65,36 +90,19 @@ def define_directories():
         "preprocessedDataDir": "Z:\\RawData\\", # "D:\\Test\\",
         # "preprocessedDataDir": "Z://ProcessedData//",
         "zstackDir": "Z:\\RawData\\",
-        "metadataDir": "Z:\\RawData\\"#"D:\\Test\\" #",
-    }
-    return (
-        directoryDb  # dataDefFile, preprocessedDataDir, zstackDir, metadataDir
-    )
-
-def define_directories_dlc():
-    """
-    Creates a dictionary containing the directory paths needed for pupil analysis.
-
-    Returns
-    -------
-    directoryDb : dict
-        A dictionary containing the following keys and their respective directory paths:
-        - 'model_path': The directory where the trained model for pupil analysis is located.
-        - 'csvDir': Directory path to the CSV file containing video analysis configurations.
-        - 'rawDataBaseFolder': The base directory where the raw experimental data is stored.
-        - 'destBaseFolder': The base directory where all processed pupil videos will be saved.
-    }
-    """
-    directoryDb = {
-
-        'model_path': r"C:\Users\Experimenter\Deeplabcut_files\MousePupil-SchroederLab-2023-08-02",
-        'csvDir': r"C:\Users\Experimenter\Deeplabcut_files\pupil_analysis\pupil_analysis_config.csv",
+        "metadataDir": "Z:\\RawData\\", #"D:\\Test\\" #",
+        
+        
+        # DLC related directories: 
+            
+        "DLCmodelDir": r"C:\\Users\\Experimenter\\Deeplabcut_files\\MousePupil-SchroederLab-2023-08-02",
+        'DLCdataDefFile': r"C:\Users\Experimenter\Deeplabcut_files\pupil_analysis\pupil_analysis_config.csv",
         'rawDataBaseFolder': r"Z:\RawData",
         'destBaseFolder': r"Z:\ProcessedData"
-
     }
-    return directoryDb
-
+    return (
+        directoryDb  # dataDefFile, preprocessedDataDir, zstackDir, metadataDir, DLCmodelDir, DLCdataDefFile, rawDataBaseFolder, destBaseFolder
+    )
 
 
 def create_2p_processing_ops():
